@@ -142,7 +142,12 @@ class ModelZoo extends React.Component {
       <div id="page-content-wrapper">
         <div className="row" ref="ContentPage">
           <div ref="mymodels">
-            <ModelElement importNet={this.props.importNet} framework="keras" id="imdb_cnn_lstm" displayName="IMDB CNN LSTM"> </ModelElement>
+            {/* <ModelElement importNet={this.props.importNet} framework="keras" id="imdb_cnn_lstm" displayName="IMDB CNN LSTM"> </ModelElement> */}
+            <ModelElement importNet={this.props.importNet} framework="keras" id="simple_dnn" displayName="DNN"> </ModelElement>
+            <ModelElement importNet={this.props.importNet} framework="keras" id="cnn" displayName="CNN"> </ModelElement>
+            <ModelElement importNet={this.props.importNet} framework="keras" id="alexnet" displayName="AlexNet"> </ModelElement>
+            <ModelElement importNet={this.props.importNet} framework="keras" id="lstm" displayName="LSTM"> </ModelElement>
+            <ModelElement importNet={this.props.importNet} framework="keras" id="vgg" displayName="VGG"> </ModelElement>
           </div>
 {/*
           <div ref="recognition">

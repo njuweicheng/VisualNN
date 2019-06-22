@@ -19,6 +19,7 @@ settings/dev.py
 docs/build/
 
 node_modules/
+node_modules/*
 
 *.pyc
 
@@ -31,3 +32,6 @@ ide/static/bundle/
 models/
 
 celerybeat-schedule
+media/*
+
+weight/*

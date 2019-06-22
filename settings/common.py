@@ -15,6 +15,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+#ALLOWED_HOSTS = ['*','192.0.0.1']
+# ALLOWED_HOSTS = ['0.0.0.0']
 
 # Application definition
 
@@ -120,3 +122,8 @@ CHANNEL_LAYERS = {
 }
 
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
