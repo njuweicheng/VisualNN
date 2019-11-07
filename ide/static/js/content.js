@@ -9,6 +9,7 @@ import data from './data';
 import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
+import Login from './login';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -1341,12 +1342,16 @@ class Content extends React.Component {
     return (
         <div id="parent">
         <div id="logo_back">
-					<a href="http://fabrik.cloudcv.org"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
-					<a href="http://dislab.nju.edu.cn"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
+					<a href="https://github.com/KSDeng/VisualNN"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
+					<a href="https://cs.nju.edu.cn/lwz/"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
 				<div className="clear"></div>
 				</div>
         <a className="sidebar-button" onClick={this.toggleSidebar}></a>
         <div id="sidebar">
+           <Login
+           setUserId={this.setUserId}
+           setUserName={this.setUserName}
+           />
           <div id="sidebar-scroll" className="col-md-12">
              <h5 className="sidebar-heading">操作</h5>
              <TopBar

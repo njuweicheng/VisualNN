@@ -4,16 +4,30 @@ class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isOpenLoginPanel: false
+      loginState: false,
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false,
+
+      ifPasswordDiscrepency: false
     }
     this.tryLogin = this.tryLogin.bind(this);
+    this.trySignUp = this.trySignUp.bind(this);
+    this.cancelSignUp = this.cancelSignUp.bind(this);
+    this.confirmSignUp = this.confirmSignUp.bind(this);
     this.logoutUser = this.logoutUser.bind(this);
   }
+
   componentWillMount() {
-    this.setState({ loginState: false });
+    this.setState({ 
+	loginState: false,
+	isOpenLoginPanel: false,
+	isOpenSignUpPanel: false 
+    });
+    
   }
+
   componentDidMount() {
-    this.tryLogin(false);
+    // this.tryLogin(false);
   }
   logoutUser() {
     $.ajax({
@@ -33,7 +47,10 @@ class Login extends React.Component {
         this.addError("Error occurred while logging out");
       }.bind(this)
     });
-    this.setState({ isOpenLoginPanel: false });
+    this.setState({ 
+	isOpenLoginPanel: false,
+	isOpenSignUpPanel: false
+    });
   }
   openLoginPanel() {
     this.setState({
@@ -42,7 +59,9 @@ class Login extends React.Component {
   }
   closeLoginPanel() {
     this.setState({
-      isOpenLoginPanel: false
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false,
+      ifPasswordDiscrepency: false
     });
   }
   tryLogin(showNotification) {
@@ -53,7 +72,11 @@ class Login extends React.Component {
       username = $('#login-input')[0].value;
       password = $('#password-input')[0].value;
     }
+    console.log(username);
+    console.log(password);
+    console.log(showNotification);
 
+/*
     $.ajax({
       url: '/backendAPI/checkLogin',
       type: 'GET',
@@ -92,11 +115,142 @@ class Login extends React.Component {
         this.setState({ loginState: false });
       }.bind(this)
     });
+*/
   }
+
+  // try signing up, change frontend.
+  trySignUp(){
+    this.setState({ isOpenSignUpPanel: true });
+  }
+
+  // cancel signing up
+  cancelSignUp(){
+    this.setState({ 
+        isOpenSignUpPanel: false,
+        ifPasswordDiscrepency: false 
+    });
+    $('#sign-up-username-input')[0].value = "";
+  }
+
+
+  // confirm signing up
+  confirmSignUp() {
+    
+    console.log("Confirm Signup.");
+
+
+    let username = $('#sign-up-username-input')[0].value;
+    let password = $('#sign-up-password-input')[0].value;
+    let passwordRepeat = $('#sign-up-password-repeat')[0].value;
+
+    console.log(username);
+    console.log(password);
+    console.log(passwordRepeat);
+
+    if (password !== passwordRepeat) {
+	// console.log("password discrepency!");
+	this.setState({ ifPasswordDiscrepency: true });
+    } else {
+
+
+    $.ajax({
+      url: '/backendAPI/signUp',
+      type: 'GET',
+      contentType: false,
+      data: {
+        username: username,
+        password: password
+      },
+      success: function (response) {
+	this.setState({
+            isOpenLoginPanel: true,
+            isOpenSignUpPanel: false,
+            ifPasswordDiscrepency: false
+	});
+	console.log('User ' + response.username + ' created.');
+	
+      }.bind(this),
+
+      error: function () {
+        
+      }.bind(this)
+    });
+    $('#sign-up-username-input')[0].value = "";
+
+    }
+    
+  }
+
   render() {
     let loginPanel = null;
+    let signupPanel = null;
+    let warningLabel = null;
+    let panel = null;
+
+    if (this.state.ifPasswordDiscrepency) {
+       warningLabel =  (
+           <span className="label label-danger">Password Discrepency!</span>
+       );
+    } 
 
     if (this.state.isOpenLoginPanel) {
+	if (this.state.isOpenSignUpPanel){
+         signupPanel = (
+
+        <div id="login-prepanel" className="login-prepanel-enabled" onClick={
+              (e) => {
+                if (e.target.id == "login-prepanel" || e.target.id == "login-panel-close") {
+                  this.closeLoginPanel();
+                }
+              }
+            }>
+            <div className="login-panel">
+
+              <i className="material-icons" id="login-panel-close">x</i>
+              <div className="login-logo">
+                <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
+              </div>
+              <div className="login-panel-main">
+		{warningLabel}
+                <h5 className="sidebar-heading">
+                  <input placeholder="Enter user name" autoCorrect="off" id="sign-up-username-input"></input>
+                </h5>
+                <h5 className="sidebar-heading">
+                  <input type="password" placeholder="Enter password" id="sign-up-password-input"></input>
+                </h5>
+                <h5 className="sidebar-heading">
+                  <input type="password" placeholder="Enter password again" id="sign-up-password-repeat"></input>
+                </h5>
+
+                <div id="login-error-message">
+                  <i className="material-icons">close</i>
+                  <div id="login-error-message-text"></div>
+                </div>
+		
+                <h5 className="sidebar-heading login-prebtn">
+                  <div className="col-md-6 login-button" id="sign-up-back-button">
+                    <a className="btn btn-block btn-social" onClick={() => this.cancelSignUp() } style={{width: '105px'}}>
+                      <span className="fa fa-sign-in"></span>Back
+                    </a>
+                  </div>
+                </h5>
+
+                <h5 className="sidebar-heading login-prebtn">
+                
+		<div className="col-md-5 login-button" id="signup-confirm-button">
+                    <a className="btn btn-block btn-social" onClick={ () => this.confirmSignUp() } style={{width: '105px'}}>
+                      <span className="fa fa-sign-in"></span>Sign Up
+                    </a>
+                  </div>
+                </h5>
+
+            </div>
+            </div>
+        </div>
+          );
+          panel = signupPanel;
+        }
+         else {
       loginPanel = (
         <div id="login-prepanel" className="login-prepanel-enabled" onClick={
               (e) => {
@@ -106,26 +260,16 @@ class Login extends React.Component {
               }
             }>
             <div className="login-panel">
-              <i className="material-icons" id="login-panel-close">close</i>
+              <i className="material-icons" id="login-panel-close">x</i>
               <div className="login-logo">
-                <a href="http://fabrik.cloudcv.org">
-                  <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
-                </a>
+                <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
               </div>
               <div className="login-panel-main">
                 <h5 className="sidebar-heading">
-                  LOGIN
-                  <div className="login-invalid">- invalid</div>
+                  <input placeholder="Enter user name" autoCorrect="off" id="login-input"></input>
                 </h5>
                 <h5 className="sidebar-heading">
-                  <input placeholder="login" autoCorrect="off" id="login-input"></input>
-                </h5>
-                <h5 className="sidebar-heading">
-                  PASSWORD
-                  <div className="login-invalid">- invalid</div>
-                </h5>
-                <h5 className="sidebar-heading">
-                  <input type="password" placeholder="password" id="password-input"></input>
+                  <input type="password" placeholder="Enter password" id="password-input"></input>
                 </h5>
 
                 <div id="login-error-message">
@@ -143,7 +287,7 @@ class Login extends React.Component {
 
                 <h5 className="sidebar-heading login-prebtn">
                   <div className="col-md-5 login-button">
-                    <a className="btn btn-block btn-social" onClick={() => window.location="/accounts/google/login"}  style={{width: '105px'}}>
+                    <a className="btn btn-block btn-social" onClick={() => this.trySignUp()}  style={{width: '105px'}}>
                       <span className="fa fa-user-plus"></span>Sign up
                     </a>
                   </div>
@@ -176,6 +320,8 @@ class Login extends React.Component {
               </div>
             </div> 
           </div>);
+          panel = loginPanel;
+	}
     }
 
     if(this.state.loginState) {
@@ -203,7 +349,7 @@ class Login extends React.Component {
             }}>
             <div>LOGIN</div>
           </h5>
-          {loginPanel}
+          {panel}
         </div>
       )
     }
