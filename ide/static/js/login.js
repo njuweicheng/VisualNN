@@ -8,7 +8,7 @@ class Login extends React.Component {
       isOpenLoginPanel: false,
       isOpenSignUpPanel: false,
 
-      ifPasswordDiscrepency: false
+      ifPasswordDiscrepancy: false
     }
     this.tryLogin = this.tryLogin.bind(this);
     this.trySignUp = this.trySignUp.bind(this);
@@ -19,9 +19,11 @@ class Login extends React.Component {
 
   componentWillMount() {
     this.setState({ 
-	loginState: false,
-	isOpenLoginPanel: false,
-	isOpenSignUpPanel: false 
+      loginState: false,
+	    isOpenLoginPanel: false,
+      isOpenSignUpPanel: false ,
+      
+      ifPasswordDiscrepancy: false
     });
     
   }
@@ -29,6 +31,18 @@ class Login extends React.Component {
   componentDidMount() {
     // this.tryLogin(false);
   }
+
+  clearLoginInput(){
+    $('#login-input')[0].value = "";
+    $('#password-input')[0].value = "";
+  }
+
+  clearSignUpInput(){
+    $('#sign-up-username-input')[0].value = "";
+    $('#sign-up-password-input')[0].value = "";
+    $('#sign-up-password-repeat')[0].value = "";
+  }
+
   logoutUser() {
     $.ajax({
       url: '/accounts/logout',
@@ -48,22 +62,25 @@ class Login extends React.Component {
       }.bind(this)
     });
     this.setState({ 
-	isOpenLoginPanel: false,
-	isOpenSignUpPanel: false
+	    isOpenLoginPanel: false,
+	    isOpenSignUpPanel: false
     });
   }
+
   openLoginPanel() {
     this.setState({
       isOpenLoginPanel: true
     });
   }
+
   closeLoginPanel() {
     this.setState({
       isOpenLoginPanel: false,
       isOpenSignUpPanel: false,
-      ifPasswordDiscrepency: false
+      ifPasswordDiscrepancy: false
     });
   }
+
   tryLogin(showNotification) {
     let username = null;
     let password = null;
@@ -127,7 +144,7 @@ class Login extends React.Component {
   cancelSignUp(){
     this.setState({ 
         isOpenSignUpPanel: false,
-        ifPasswordDiscrepency: false 
+        ifPasswordDiscrepancy: false 
     });
     $('#sign-up-username-input')[0].value = "";
   }
@@ -149,7 +166,7 @@ class Login extends React.Component {
 
     if (password !== passwordRepeat) {
 	// console.log("password discrepency!");
-	this.setState({ ifPasswordDiscrepency: true });
+	this.setState({ ifPasswordDiscrepancy: true });
     } else {
 
 
@@ -165,7 +182,7 @@ class Login extends React.Component {
 	this.setState({
             isOpenLoginPanel: true,
             isOpenSignUpPanel: false,
-            ifPasswordDiscrepency: false
+            ifPasswordDiscrepancy: false
 	});
 	console.log('User ' + response.username + ' created.');
 	
@@ -182,22 +199,19 @@ class Login extends React.Component {
   }
 
   render() {
-    let loginPanel = null;
-    let signupPanel = null;
     let warningLabel = null;
     let panel = null;
 
-    if (this.state.ifPasswordDiscrepency) {
+    if (this.state.ifPasswordDiscrepancy) {
        warningLabel =  (
-           <span className="label label-danger">Password Discrepency!</span>
+           <span className="label label-danger">Password Discrepancy!</span>
        );
     } 
 
     if (this.state.isOpenLoginPanel) {
-	if (this.state.isOpenSignUpPanel){
-         signupPanel = (
-
-        <div id="login-prepanel" className="login-prepanel-enabled" onClick={
+	    if (this.state.isOpenSignUpPanel){
+          panel = (
+            <div id="login-prepanel" className="login-prepanel-enabled" onClick={
               (e) => {
                 if (e.target.id == "login-prepanel" || e.target.id == "login-panel-close") {
                   this.closeLoginPanel();
@@ -211,7 +225,7 @@ class Login extends React.Component {
                 <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
               </div>
               <div className="login-panel-main">
-		{warningLabel}
+		          {warningLabel}
                 <h5 className="sidebar-heading">
                   <input placeholder="Enter user name" autoCorrect="off" id="sign-up-username-input"></input>
                 </h5>
@@ -248,11 +262,10 @@ class Login extends React.Component {
             </div>
         </div>
           );
-          panel = signupPanel;
         }
          else {
-      loginPanel = (
-        <div id="login-prepanel" className="login-prepanel-enabled" onClick={
+          panel = (
+          <div id="login-prepanel" className="login-prepanel-enabled" onClick={
               (e) => {
                 if (e.target.id == "login-prepanel" || e.target.id == "login-panel-close") {
                   this.closeLoginPanel();
@@ -320,8 +333,7 @@ class Login extends React.Component {
               </div>
             </div> 
           </div>);
-          panel = loginPanel;
-	}
+	    }
     }
 
     if(this.state.loginState) {
