@@ -13,8 +13,7 @@ def sign_up(request):
 	# check if username already exists.
 	if len(querySet) > 0:
 	    return JsonResponse({
-	        'result': True,
-	        'info': 'User_exists',
+	        'result': 'user_already_exists',
 	        'username': username
 	    })
 
@@ -25,14 +24,13 @@ def sign_up(request):
 	# if testUser != None:
 	#    print("successfully saved.")
 	return JsonResponse({
-            'result': True,
-	    'info': 'User_create_success',
+            'result': 'user_create_success',
             'username': username
         })
 	
     except Exception as e:
         return JsonResponse({
-            'result': False,
+            'result': 'user_create_failure',
 	    'info': str(e)
         })
 
