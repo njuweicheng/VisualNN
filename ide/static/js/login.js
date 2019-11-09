@@ -15,6 +15,8 @@ class Login extends React.Component {
     this.cancelSignUp = this.cancelSignUp.bind(this);
     this.confirmSignUp = this.confirmSignUp.bind(this);
     this.logoutUser = this.logoutUser.bind(this);
+    this.clearSignUpInput = this.clearSignUpInput.bind(this);
+    this.clearLoginInput = this.clearLoginInput.bind(this);
   }
 
   componentWillMount() {
@@ -146,7 +148,7 @@ class Login extends React.Component {
         isOpenSignUpPanel: false,
         ifPasswordDiscrepancy: false 
     });
-    $('#sign-up-username-input')[0].value = "";
+    this.clearSignUpInput();
   }
 
 
@@ -192,7 +194,7 @@ class Login extends React.Component {
         
       }.bind(this)
     });
-    $('#sign-up-username-input')[0].value = "";
+    this.clearSignUpInput();
 
     }
     
