@@ -20,7 +20,7 @@ class Login extends React.Component {
   componentWillMount() {
     this.setState({ 
       loginState: false,
-	    isOpenLoginPanel: false,
+      isOpenLoginPanel: false,
       isOpenSignUpPanel: false ,
       
       ifPasswordDiscrepancy: false
@@ -62,8 +62,8 @@ class Login extends React.Component {
       }.bind(this)
     });
     this.setState({ 
-	    isOpenLoginPanel: false,
-	    isOpenSignUpPanel: false
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false
     });
   }
 
@@ -209,7 +209,7 @@ class Login extends React.Component {
     } 
 
     if (this.state.isOpenLoginPanel) {
-	    if (this.state.isOpenSignUpPanel){
+      if (this.state.isOpenSignUpPanel){
           panel = (
             <div id="login-prepanel" className="login-prepanel-enabled" onClick={
               (e) => {
@@ -225,7 +225,7 @@ class Login extends React.Component {
                 <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
               </div>
               <div className="login-panel-main">
-		          {warningLabel}
+                {warningLabel}
                 <h5 className="sidebar-heading">
                   <input placeholder="Enter user name" autoCorrect="off" id="sign-up-username-input"></input>
                 </h5>
@@ -333,7 +333,7 @@ class Login extends React.Component {
               </div>
             </div> 
           </div>);
-	    }
+        }
     }
 
     if(this.state.loginState) {
