@@ -9,6 +9,7 @@ import data from './data';
 import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
+import Login from './login';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -60,9 +61,9 @@ class Content extends React.Component {
       randomUserId: null,
       highlightColor: '#000000'
     };
-	{/*upload data*/}
-    this.uploadData=this.uploadData.bind(this);
-	{/*Over*/}
+    
+    this.uploadData=this.uploadData.bind(this);			{/*upload data*/}
+    this.startTraining = this.startTraining.bind(this);		{/*start training*/}
     this.addNewLayer = this.addNewLayer.bind(this);
     this.changeSelectedLayer = this.changeSelectedLayer.bind(this);
     this.changeHoveredLayer = this.changeHoveredLayer.bind(this);
@@ -764,14 +765,11 @@ class Content extends React.Component {
   }
 //upload data
   uploadData(){
-//	window.alert("upload data");
 	this.dismissAllErrors();
 
 	const formData=new FormData();
 	formData.append("file",$("#uploadData")[0].files[0]);
 
-//	window.alert(formData.get("file"));
-	
 	$.ajax({
 		url: '/upload_training_data',
 		dataType: 'json',
@@ -783,6 +781,25 @@ class Content extends React.Component {
 			if (response.result == 'success'){
 				window.alert("Success to upload data");
 			} else if (response.result == 'error'){
+				this.addError(response.error);
+			}
+		}.bind(this),
+		error : function (){
+			this.addError("Error");
+		}.bind(this)
+	});
+  }
+//over
+//startTraining
+  startTraining(){
+	this.dismissAllErrors();
+	$.ajax({
+		type: 'GET',
+		url: '/start_training',
+		success: function (response){
+			if (response.result == 'success'){
+				window.alert("Training process starts successfully...");
+			}else if(response.result == 'error'){
 				this.addError(response.error);
 			}
 		}.bind(this),
@@ -1325,12 +1342,16 @@ class Content extends React.Component {
     return (
         <div id="parent">
         <div id="logo_back">
-					<a href="http://fabrik.cloudcv.org"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
-					<a href="http://dislab.nju.edu.cn"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
+					<a href="https://github.com/KSDeng/VisualNN"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
+					<a href="https://cs.nju.edu.cn/lwz/"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
 				<div className="clear"></div>
 				</div>
         <a className="sidebar-button" onClick={this.toggleSidebar}></a>
         <div id="sidebar">
+           <Login
+           setUserId={this.setUserId}
+           setUserName={this.setUserName}
+           />
           <div id="sidebar-scroll" className="col-md-12">
              <h5 className="sidebar-heading">操作</h5>
              <TopBar
@@ -1345,7 +1366,11 @@ class Content extends React.Component {
              />
              
              <div className="text-center">
-             <Tabs selectedPhase={this.state.selectedPhase} changeNetPhase={this.changeNetPhase} />
+		<Tabs
+		selectedPhase={this.state.selectedPhase} 
+		changeNetPhase={this.changeNetPhase} 
+		startTraining={this.startTraining}
+		/>
              </div>
              <h5 className="sidebar-heading">插入网络层</h5>
              <div className="sidebar-heading">

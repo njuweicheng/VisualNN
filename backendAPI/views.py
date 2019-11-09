@@ -3,6 +3,26 @@ from __future__ import unicode_literals
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 
+def sign_up(request):
+    try:
+	username = request.GET['username']
+	password = request.GET['password']
+	# save user to db
+	user = User.objects.create(username=username, password=password)
+	testUser = User.objects.get(username=username)
+	if testUser != None:
+	    print("successfully saved.")
+	return JsonResponse({
+            'result': True,
+            'username': username
+        })
+	
+
+    except Exception as e:
+        return JsonResponse({
+            'result': False,
+            'error': str(e)
+        })
 
 def check_login(request):
     try:
