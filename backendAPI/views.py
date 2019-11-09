@@ -7,21 +7,33 @@ def sign_up(request):
     try:
 	username = request.GET['username']
 	password = request.GET['password']
+	
+	querySet = User.objects.filter(username=username)
+
+	# check if username already exists.
+	if len(querySet) > 0:
+	    return JsonResponse({
+	        'result': True,
+	        'info': 'User_exists',
+	        'username': username
+	    })
+
 	# save user to db
 	user = User.objects.create(username=username, password=password)
-	testUser = User.objects.get(username=username)
-	if testUser != None:
-	    print("successfully saved.")
+
+	# testUser = User.objects.get(username=username)
+	# if testUser != None:
+	#    print("successfully saved.")
 	return JsonResponse({
             'result': True,
+	    'info': 'User_create_success',
             'username': username
         })
 	
-
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'error': str(e)
+	    'info': str(e)
         })
 
 def check_login(request):
