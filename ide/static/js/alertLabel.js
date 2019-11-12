@@ -12,7 +12,7 @@ class AlertLabel extends React.Component {
     }
 }
 
-AlertLabel.protoTypes = {
+AlertLabel.propTypes = {
   display: React.PropTypes.string,
   text: React.PropTypes.string,
   alertType: React.PropTypes.string

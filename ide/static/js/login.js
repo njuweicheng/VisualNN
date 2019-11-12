@@ -157,6 +157,7 @@ class Login extends React.Component {
 
   // try signing up, change frontend.
   trySignUp(){
+    this.clearLoginInput();
     this.setState({ isOpenSignUpPanel: true });
   }
 
@@ -219,51 +220,58 @@ class Login extends React.Component {
 		username: username,
 		password: password
             },
+            success: function(response) {
 
-            user_already_exists: function(response) {
-		this.setState({
-                    isOpenLoginPanel: true,
-                    isOpenSignUpPanel: true,
-                    ifShowAlertSignUp: true,
-                    alertText: "Username already exists, please use another name.",
-                    alertType: 'alert alert-warning'
-		});
+                switch(response.result){
+                    case 'user_already_exists':
+                        
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: true,
+                            ifShowAlertSignUp: true,
+                            alertText: "Username already exists, please use another name.",
+                            alertType: 'alert alert-warning'
+                        });
+                    
+                        console.log('User ' + response.username + ' already exists.');
+                        break;
+                    case 'user_create_success':
+                        
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: false,
+                            ifShowAlertSignUp: false,
 
-		console.log('User ' + response.username + ' already exists.');
+                            ifShowAlertLogIn: true,
+                            alertText: "Sign up successfully, you can now log in.",
+                            alertType: 'alert alert-success'
+                        });
+                        console.log('User ' + response.username + ' created successfully.');
+                        break;
+                    case 'user_create_failure':
+    
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: true,
+                            isShowAlertSignUp: true,
+                            alertText: "Error occurs, please try again.",
+                            alertType: 'alert alert-danger'
+                        });
+
+                        console.log(response.info);
+                        console.log('User create failure.');
+                        break;
+                    default:
+                        console.log('Unhandled case in sign up!');
+                }
+          
             }.bind(this),
-
-            user_create_success: function(response) {
-		this.setState({
-                    isOpenLoginPanel: true,
-                    isOpenSignUpPanel: false,
-                    ifShowAlertSignUp: false,
-
-                    ifShowAlertLogIn: true,
-                    alertText: "Sign up successfully, you can now log in.",
-                    alertType: 'alert alert-success'
-		});
-		console.log('User ' + response.username + ' created successfully.');
-            }.bind(this),
-
-            user_create_failure: function(response) {
-		this.setState({
-                    isOpenLoginPanel: true,
-                    isOpenSignUpPanel: true,
-                    isShowAlertSignUp: true,
-                    alertText: "Error occurs, please try again.",
-                    alertType: 'alert alert-danger'
-		});
-
-		console.log(response.info);
-		console.log('User create failure.');
-            }.bind(this)
-
+            error() {
+            }
 	});
 
 	this.clearSignUpInput();
-    }
-
-    
+    } 
   }
 
   render() {
@@ -301,12 +309,12 @@ class Login extends React.Component {
               }
             }>
             <div className="login-panel">
-              {signUpAlertDiv}
               <i className="material-icons" id="login-panel-close">x</i>
               <div className="login-logo">
                 <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
               </div>
               <div className="login-panel-main">
+                {signUpAlertDiv}
                 <h5 className="sidebar-heading">
                   <input placeholder="Enter user name" autoCorrect="off" id="sign-up-username-input"></input>
                 </h5>
@@ -354,12 +362,12 @@ class Login extends React.Component {
               }
             }>
             <div className="login-panel">
-              {logInAlertDiv}
               <i className="material-icons" id="login-panel-close">x</i>
               <div className="login-logo">
                 <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
               </div>
               <div className="login-panel-main">
+                {logInAlertDiv}
                 <h5 className="sidebar-heading">
                   <input placeholder="Enter user name" autoCorrect="off" id="login-input"></input>
                 </h5>
