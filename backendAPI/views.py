@@ -34,6 +34,43 @@ def sign_up(request):
 	    'info': str(e)
         })
 
+
+def log_in(request):
+    try:
+        if request.method == 'GET':
+            username = request.GET['username']
+            password = request.GET['password']
+
+            querySet = User.objects.filter(username=username)
+            if len(querySet) == 1:
+                getUser = querySet[0]
+                if getUser.password == password:
+                    print('Log in successfully')
+                    return JsonResponse({
+                        'result': 'user_login_success',
+                        'username': username
+                    })
+                else:
+                    print('Password error!')
+                    return JsonResponse({
+                        'result': 'user_login_password_error',
+                        'username': username
+                    })
+            else:
+                print('database error ', len(querySet))
+                return JsonResponse({
+                    'result': 'user_database_error',
+                    'username': username,
+                    'querylength': len(querySet)
+                })
+
+    except Exception as e:
+        return JsonResponse({
+            'result': 'user_login_failure',
+	    'info': str(e)
+        })
+
+
 def check_login(request):
     try:
         if request.GET.get('isOAuth') == 'false':
