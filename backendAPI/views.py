@@ -42,7 +42,8 @@ def log_in(request):
             password = request.GET['password']
 
             querySet = User.objects.filter(username=username)
-            if len(querySet) == 1:
+            num = len(querySet)
+            if num == 1:
                 getUser = querySet[0]
                 if getUser.password == password:
                     print('Log in successfully')
@@ -56,14 +57,19 @@ def log_in(request):
                         'result': 'user_login_password_error',
                         'username': username
                     })
-            else:
-                print('database error ', len(querySet))
+            elif num == 0:
+                print('User does not exist.')
                 return JsonResponse({
-                    'result': 'user_database_error',
+                    'result': 'user_name_not_exist',
+                    'username': username,
+                })
+            else:
+                print('Database error')
+                return JsonResponse({
+                    'result': 'database_error',
                     'username': username,
                     'querylength': len(querySet)
                 })
-
     except Exception as e:
         return JsonResponse({
             'result': 'user_login_failure',
