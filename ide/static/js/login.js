@@ -19,7 +19,8 @@ class Login extends React.Component {
       ifShowAlertSignUp: false,
       ifShowAlertLogIn: false,
       alertText: '',
-      alertType: 'alert alert-danger'
+      alertType: 'alert alert-danger',
+      loginName: 'cw'
     };
     this.tryLogin = this.tryLogin.bind(this);
     this.trySignUp = this.trySignUp.bind(this);
@@ -37,7 +38,8 @@ class Login extends React.Component {
       isOpenLoginPanel: false,
       isOpenSignUpPanel: false ,
       ifShowAlertSignUp: false,
-      ifShowAlertLogIn: false
+      ifShowAlertLogIn: false,
+      loginName: 'cw'
     });
     
   }
@@ -429,6 +431,10 @@ class Login extends React.Component {
     if(this.state.loginState) {
       return (
         <div>
+           <h5 className="sidebar-heading" id="sidebar-login-button">
+             <div>{this.loginName}</div>
+           </h5>
+
           <h5 className="sidebar-heading" id="sidebar-login-button" onClick={
             () => {
               this.logoutUser();
