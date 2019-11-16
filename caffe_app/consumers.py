@@ -98,7 +98,8 @@ def ws_receive(message):
     if ('networkId' in message.channel_session):
         networkId = message.channel_session['networkId']
 
-    if (action == 'ExportNet'):
+    # differ logic of export net and save net for training.
+    if (action == 'ExportNet' or action == 'SaveNetForTraining'):
         # async export call
         framework = data['framework']
         net = data['net']
@@ -109,9 +110,9 @@ def ws_receive(message):
         if (framework == 'caffe'):
             export_caffe_prototxt.delay(net, net_name, reply_channel)
         elif (framework == 'keras'):
-            export_keras_json.delay(net, net_name, False, reply_channel)
+            export_keras_json.delay(net, net_name, False, reply_channel, action)
         elif (framework == 'tensorflow'):
-            export_keras_json.delay(net, net_name, True, reply_channel)
+            export_keras_json.delay(net, net_name, True, reply_channel, action)
 
     elif (action == 'UpdateHighlight'):
         group_data = update_data(data, update_params['UpdateHighlight'])[1]

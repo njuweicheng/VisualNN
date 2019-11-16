@@ -805,30 +805,33 @@ class Content extends React.Component {
   }
 
 //startTraining
-  startTraining(batch_size, epoch, lr){
+  startTraining(batch_size, epoch_times, lr){
     this.closeModal();
     console.log("In function content.js start training.");
     console.log(batch_size);
-    console.log(epoch);
+    console.log(epoch_times);
     console.log(lr);
 
-/*
-	this.dismissAllErrors();
-	$.ajax({
-		type: 'GET',
-		url: '/start_training',
-		success: function (response){
-			if (response.result == 'success'){
-				window.alert("Training process starts successfully...");
-			}else if(response.result == 'error'){
-				this.addError(response.error);
-			}
-		}.bind(this),
-		error : function (){
-			this.addError("Error");
-		}.bind(this)
-	});
-*/
+    this.dismissAllErrors();
+    $.ajax({
+        type: 'GET',
+        url: '/start_training',
+        data: {
+            batch_size: batch_size,
+            epoch_times: epoch_times,
+            lr: lr
+        },
+        success: function (response){
+            if (response.result == 'success'){
+                window.alert("Training process starts successfully...");
+            }else if(response.result == 'error'){
+                this.addError(response.error);
+            }
+        }.bind(this),
+        error : function (){
+            this.addError("Error");
+        }.bind(this)
+    });
   }
 //over
   initialiseImportedNet(net,net_name) {

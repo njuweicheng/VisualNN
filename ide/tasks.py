@@ -291,8 +291,8 @@ def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
 
     randomId = datetime.now().strftime('%Y%m%d%H%M%S') + randomword(5)
     # save Id index in one line
-    with open(BASE_DIR + '/media/randomIndex.txt', 'a+') as f:
-        f.write(str(randomId) + '\n')
+    # with open(BASE_DIR + '/media/randomIndex.txt', 'a+') as f:
+        # f.write(str(randomId) + '\n')
 
     with open(BASE_DIR + '/media/' + randomId + '.json', 'w') as f:
         json.dump(json.loads(json_string), f, indent=4)
@@ -349,7 +349,9 @@ def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
 	    })
     elif(action_type == 'SaveNetForTraining'):
         print('tasks.py save net for training')
-        with open(BASE_DIR + '/test_save/' + randomId + '.json', 'w') as f:
+        with open(BASE_DIR + '/test_data/randomIndex.txt', 'a+') as f:
+            f.write(str(randomId) + '\n')
+        with open(BASE_DIR + '/test_model/' + randomId + '.json', 'w') as f:
             json.dump(json.loads(json_string), f, indent=4)
 	Channel(reply_channel).send({
 	    'text': json.dumps({
