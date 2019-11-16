@@ -10,6 +10,7 @@ import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
 import Login from './login';
+import TrainingParaWindow from './trainingParaWindow';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -129,6 +130,8 @@ class Content extends React.Component {
     this.changeCommentOnLayer = this.changeCommentOnLayer.bind(this);
     this.getRandomColor = this.getRandomColor.bind(this);
     this.downloadModel = this.downloadModel.bind(this);
+
+    this.openTrainingParaWindow = this.openTrainingParaWindow.bind(this);
   }
   getRandomColor() {
     var rint = Math.round(0xffffff * Math.random());
@@ -790,8 +793,22 @@ class Content extends React.Component {
 	});
   }
 //over
+
+  openTrainingParaWindow(){
+    this.modalHeader = null;
+    this.modalContent = <TrainingParaWindow submitParams={this.startTraining}/>;
+    this.openModal();
+  }
+
 //startTraining
-  startTraining(){
+  startTraining(batch_size, epoch, lr){
+    this.closeModal();
+    console.log("In function content.js start training.");
+    console.log(batch_size);
+    console.log(epoch);
+    console.log(lr);
+
+/*
 	this.dismissAllErrors();
 	$.ajax({
 		type: 'GET',
@@ -807,6 +824,7 @@ class Content extends React.Component {
 			this.addError("Error");
 		}.bind(this)
 	});
+*/
   }
 //over
   initialiseImportedNet(net,net_name) {
@@ -1369,7 +1387,7 @@ class Content extends React.Component {
 		<Tabs
 		selectedPhase={this.state.selectedPhase} 
 		changeNetPhase={this.changeNetPhase} 
-		startTraining={this.startTraining}
+		startTraining={this.openTrainingParaWindow}
 		/>
              </div>
              <h5 className="sidebar-heading">插入网络层</h5>
