@@ -57,8 +57,8 @@ def export_caffe_prototxt(self, net, net_name, reply_channel):
 
 
 @task(name="export_to_keras")
-def export_keras_json(net, net_name, is_tf, reply_channel):
-    print("In function export_keras_json")
+def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
+    print("In function export_keras_json. Action type: ", action_type)
     net = yaml.safe_load(net)
     if net_name == '':
         net_name = 'Net'
@@ -302,46 +302,59 @@ def export_keras_json(net, net_name, is_tf, reply_channel):
         layer_data = {'name': layer}
         layer_data.update(custom_layers_config.config[layer])
         custom_layers_response.append(layer_data)
+	
+    if(action_type == 'ExportNet'):
+	print('In function export_keras_json, action type: ExportNet')
+	if(is_tf):
+            # export part for tensorflow from keras model
+            input_file = randomId + '.json'
+            output_file = randomId
 
-    if(is_tf):
-        # export part for tensorflow from keras model
-        input_file = randomId + '.json'
-        output_file = randomId
+            K.set_learning_phase(0)
 
-        K.set_learning_phase(0)
+            output_fld = BASE_DIR + '/media/'
 
-        output_fld = BASE_DIR + '/media/'
+            with open(output_fld + input_file, 'r') as f:
+                json_str = f.read()
 
-        with open(output_fld + input_file, 'r') as f:
-            json_str = f.read()
+	    json_str = json_str.strip("'<>() ").replace('\'', '\"')
+	    lrnLayer = imp.load_source('LRN', BASE_DIR + '/keras_app/custom_layers/lrn.py')
 
-        json_str = json_str.strip("'<>() ").replace('\'', '\"')
-        lrnLayer = imp.load_source('LRN', BASE_DIR + '/keras_app/custom_layers/lrn.py')
+	    model = model_from_json(json_str, {'LRN': lrnLayer.LRN})
 
-        model = model_from_json(json_str, {'LRN': lrnLayer.LRN})
+	    sess = K.get_session()
+	    tf.train.write_graph(sess.graph.as_graph_def(add_shapes=True), output_fld,
+				output_file + '.pbtxt', as_text=True)
 
-        sess = K.get_session()
-        tf.train.write_graph(sess.graph.as_graph_def(add_shapes=True), output_fld,
-                             output_file + '.pbtxt', as_text=True)
-
-        Channel(reply_channel).send({
-            'text': json.dumps({
-                'result': 'success',
-                'action': 'ExportNet',
-                'id': 'randomId',
-                'name': randomId + '.pbtxt',
-                'url': '/media/' + randomId + '.pbtxt',
-                'customLayers': custom_layers_response
-            })
-        })
-    else:
-        Channel(reply_channel).send({
-            'text': json.dumps({
-                'result': 'success',
-                'action': 'ExportNet',
-                'id': 'randomId',
-                'name': randomId + '.json',
-                'url': '/media/' + randomId + '.json',
-                'customLayers': custom_layers_response
-            })
-        })
+	    Channel(reply_channel).send({
+		'text': json.dumps({
+		    'result': 'success',
+		    'action': 'ExportNet',
+		    'id': 'randomId',
+		    'name': randomId + '.pbtxt',
+		    'url': '/media/' + randomId + '.pbtxt',
+		    'customLayers': custom_layers_response
+		})
+	    })
+        else:
+            Channel(reply_channel).send({
+                'text': json.dumps({
+		    'result': 'success',
+		    'action': 'ExportNet',
+		    'id': 'randomId',
+		    'name': randomId + '.json',
+		    'url': '/media/' + randomId + '.json',
+		    'customLayers': custom_layers_response
+	        })
+	    })
+    elif(action_type == 'SaveNetForTraining'):
+        print('tasks.py save net for training')
+        with open(BASE_DIR + '/test_save/' + randomId + '.json', 'w') as f:
+            json.dump(json.loads(json_string), f, indent=4)
+	Channel(reply_channel).send({
+	    'text': json.dumps({
+		'result': 'success',
+		'action': 'SaveNetForTraining',
+		'id': 'randomId'
+	    })
+	})

@@ -132,6 +132,7 @@ class Content extends React.Component {
     this.downloadModel = this.downloadModel.bind(this);
 
     this.openTrainingParaWindow = this.openTrainingParaWindow.bind(this);
+    // this.saveNetForTraining = this.saveNetForTraining(this);
   }
   getRandomColor() {
     var rint = Math.round(0xffffff * Math.random());
@@ -675,7 +676,7 @@ class Content extends React.Component {
       callback(netObj);
     }
   }
-  exportNet(framework) {
+  exportNet(framework, export_action) {
     this.exportPrep(function(netData) {
       Object.keys(netData).forEach(layerId => {
         delete netData[layerId].state;
@@ -688,7 +689,8 @@ class Content extends React.Component {
       this.sendSocketMessage({
         framework: framework,
         net: JSON.stringify(netData),
-        action: 'ExportNet',
+        //action: 'ExportNet',
+        action: export_action,
         net_name: this.state.net_name,
         randomId: this.state.randomId
       });
@@ -795,6 +797,8 @@ class Content extends React.Component {
 //over
 
   openTrainingParaWindow(){
+    this.exportNet('keras', 'SaveNetForTraining');	// save net structure to local file system
+
     this.modalHeader = null;
     this.modalContent = <TrainingParaWindow submitParams={this.startTraining}/>;
     this.openModal();

@@ -84,9 +84,9 @@ class TopBar extends React.Component {
                     <span className="glyphicon glyphicon-export" aria-hidden="true"></span>
                   </button>
                   <ul className="dropdown-menu">
-                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('caffe')}>Caffe</a></li>
-                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('keras')}>Keras</a></li>
-                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('tensorflow')}>Tensorflow</a></li>
+                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('caffe', 'ExportNet')}>Caffe</a></li>
+                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('keras', 'ExportNet')}>Keras</a></li>
+                    <li><a className="btn" href="#" onClick={() => this.props.exportNet('tensorflow', 'ExportNet')}>Tensorflow</a></li>
                   </ul>
                 </div>
               </div>
