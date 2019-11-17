@@ -61,9 +61,15 @@ class Content extends React.Component {
       isForked: false,
       socket: null,
       randomUserId: null,
-      highlightColor: '#000000'
+      highlightColor: '#000000',
+      isLoggedIn: false,
+      userName: ''
     };
     
+    this.userLogin = this.userLogin.bind(this);
+    this.userLogout = this.userLogout.bind(this);
+    this.checkLogin = this.checkLogin.bind(this);
+
     this.uploadData=this.uploadData.bind(this);			{/*upload data*/}
     this.startTraining = this.startTraining.bind(this);		{/*start training*/}
     this.addNewLayer = this.addNewLayer.bind(this);
@@ -678,6 +684,8 @@ class Content extends React.Component {
     }
   }
   exportNet(framework, export_action) {
+    if(!this.checkLogin())
+        return;
     this.exportPrep(function(netData) {
       Object.keys(netData).forEach(layerId => {
         delete netData[layerId].state;
@@ -699,6 +707,8 @@ class Content extends React.Component {
     }.bind(this));
   }
   importNet(framework, id) {
+    if(!this.checkLogin())
+        return;
     this.dismissAllErrors();
     this.closeModal();
     this.clickEvent = false;
@@ -771,33 +781,38 @@ class Content extends React.Component {
   }
 //upload data
   uploadData(){
-	this.dismissAllErrors();
+    if(!this.checkLogin()){
+        return;
+    }
+    this.dismissAllErrors();
+    const formData=new FormData();
+    formData.append("file",$("#uploadData")[0].files[0]);
+    formData.append("username", this.state.userName);
 
-	const formData=new FormData();
-	formData.append("file",$("#uploadData")[0].files[0]);
-
-	$.ajax({
-		url: '/upload_training_data',
-		dataType: 'json',
-		type: 'POST',
-		data: formData,
-		processData: false,
-		contentType: false,
-		success : function (response){
-			if (response.result == 'success'){
-				window.alert("Success to upload data");
-			} else if (response.result == 'error'){
-				this.addError(response.error);
-			}
-		}.bind(this),
-		error : function (){
-			this.addError("Error");
-		}.bind(this)
-	});
+    $.ajax({
+        url: '/upload_training_data',
+        dataType: 'json',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success : function (response){
+            if (response.result == 'success'){
+                window.alert("Success to upload data");
+            } else if (response.result == 'error'){
+                this.addError(response.error);
+            }
+        }.bind(this),
+        error : function (){
+            this.addError("Error");
+        }.bind(this)
+    });
   }
 //over
 
   openTrainingParaWindow(){
+    if(!this.checkLogin())
+        return;
     this.exportNet('keras', 'SaveNetForTraining');	// save net structure to local file system
 
     this.modalHeader = null;
@@ -833,6 +848,28 @@ class Content extends React.Component {
             this.addError("Error");
         }.bind(this)
     });
+  }
+
+  userLogin(username){
+      console.log('userLogin content.js');
+      console.log(username);
+      this.setState({
+          isLoggedIn: true,
+          userName: username
+      });
+  }
+  userLogout(){
+      console.log('userLogout content.js');
+      this.setState({
+          isLoggedIn: false,
+          userName: ''
+      });
+  }
+  checkLogin(){
+      if(!this.state.isLoggedIn){
+          this.addError('Please log in first.');
+      }
+      return this.state.isLoggedIn;
   }
 //over
   initialiseImportedNet(net,net_name) {
@@ -1377,6 +1414,8 @@ class Content extends React.Component {
            <Login
            setUserId={this.setUserId}
            setUserName={this.setUserName}
+           userLogInMain={this.userLogin}
+           userLogOutMain={this.userLogout}
            />
           <div id="sidebar-scroll" className="col-md-12">
              <h5 className="sidebar-heading">操作</h5>

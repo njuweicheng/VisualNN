@@ -11,7 +11,6 @@ from utils.shapes import get_shapes, get_layer_shape, handle_concat_layer
 from scripts.train import vision
 # from selenium import webdriver
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def index(request):
     return render(request, 'index.html')
@@ -264,12 +263,17 @@ def upload_training_data(request):
     print('In function upload_training_data.\n')
     if request.method == 'POST':
         try:
-            home_path = os.environ['HOME']
+            # home_path = os.environ['HOME']
 
             # save current data file name in dataIndex.txt
-            index_file_path = home_path + '/.VisualNN/data/dataIndex.txt'
-            uploaded_file = request.FILES['file']
+            # index_file_path = home_path + '/.VisualNN/data/dataIndex.txt'
+
+            uploaded_file = request.FILES.get('file')
+
             file_name = uploaded_file.name
+            print(file_name)
+            username = request.POST.get('username')
+            print(username)
             with open(index_file_path, 'a+') as f:
                 f.write(file_name + '\n')
             # save data file

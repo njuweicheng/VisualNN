@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import os
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def sign_up(request):
     try:
@@ -19,6 +22,15 @@ def sign_up(request):
 
 	# save user to db
 	user = User.objects.create(username=username, password=password)
+
+        # create folder for user
+        userDataPath = BASE_DIR + '/user_data'
+        if not os.path.exists(userDataPath):
+            os.mkdir(userDataPath)
+        os.makedirs(userDataPath + '/' + username + '/model')
+        os.makedirs(userDataPath + '/' + username + '/data')
+        os.makedirs(userDataPath + '/' + username + '/result')
+
 
 	# testUser = User.objects.get(username=username)
 	# if testUser != None:

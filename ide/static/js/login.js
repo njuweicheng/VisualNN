@@ -89,6 +89,7 @@ class Login extends React.Component {
       ifShowAlertSignUp: false,
       ifShowAlertLogIn: false
     });
+    this.props.userLogOutMain();
   }
 
   loginUser() {
@@ -130,6 +131,7 @@ class Login extends React.Component {
                           loginState: true,
                           loginName: response.username
                       });
+                      this.props.userLogInMain(response.username);
                       break;
                   case 'user_login_password_error':
                       this.setState({
@@ -549,7 +551,9 @@ class Login extends React.Component {
 
 Login.propTypes = {
   setUserId: React.PropTypes.func,
-  setUserName: React.PropTypes.func
+  setUserName: React.PropTypes.func,
+  userLogInMain: React.PropTypes.func,
+  userLogOutMain: React.PropTypes.func
 };
 
 export default Login;
