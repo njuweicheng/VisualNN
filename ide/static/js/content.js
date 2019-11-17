@@ -23,13 +23,13 @@ import $ from 'jquery'
 
 const infoStyle = {
   content : {
-    top                   : '50%',
+    top                   : '40%',
     left                  : '55%',
     right                 : '60%',
     bottom                : 'auto',
     marginRight           : '-50%',
     transform             : 'translate(-50%, -50%)',
-    borderRadius          : '8px'
+    borderRadius          : '5px'
   },
   overlay: {
     zIndex                : 100
@@ -809,12 +809,10 @@ class Content extends React.Component {
   startTraining(batch_size, epoch_times, lr){
     this.closeModal();
     console.log("In function content.js start training.");
-    console.log(batch_size);
-    console.log(epoch_times);
-    console.log(lr);
 
     this.dismissAllErrors();
-    this.modalContent = <TrainingLogWindow />
+    // open log window
+    this.modalContent = <TrainingLogWindow />		
     this.openModal();
     $.ajax({
         type: 'GET',
