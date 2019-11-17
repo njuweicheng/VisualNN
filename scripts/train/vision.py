@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import time
 import numpy as np
 from keras.models import model_from_json
 from keras.utils import np_utils
 from keras import optimizers
+from keras.callbacks import TensorBoard
 
 # batch_size = 128	# set by user from param window
 # epochs = 5		# set by user from param window
@@ -48,13 +50,17 @@ def train_model(model_path, data_path, result_path, batch_size, epochs, lr):
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
                   metrics=['accuracy'])
+
+    timeStamp = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
+    tb = TensorBoard(log_dir=result_path+'/logs/'+timeStamp)
     history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
                     verbose=1,
-                    validation_data=(x_test, y_test))
+                    validation_data=(x_test, y_test),
+                    callbacks=[tb])
     score = model.evaluate(x_test, y_test, verbose=0)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
-    model.save(result_path)
+    model.save(result_path + '/' + timeStamp + '.h5')
 

@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from utils.shapes import get_shapes, get_layer_shape, handle_concat_layer
 from scripts.train import vision
-
+from selenium import webdriver
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -309,7 +309,10 @@ def start_training(request):
             # print("Current model file path: %s"%(model_path))
 
             data_path = BASE_DIR + '/test_data/mnist.npz'		# TODO: use uploaded data and choose by user
-            result_path = BASE_DIR + '/test_data/result'
+            result_path = BASE_DIR + '/test_result'
+            
+            webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
+
             vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr)
             return JsonResponse({
                 'result': 'success'
