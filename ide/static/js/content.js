@@ -11,6 +11,7 @@ import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
 import Login from './login';
 import TrainingParaWindow from './trainingParaWindow';
+import TrainingLogWindow from './trainingLogWindow';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -813,6 +814,8 @@ class Content extends React.Component {
     console.log(lr);
 
     this.dismissAllErrors();
+    this.modalContent = <TrainingLogWindow />
+    this.openModal();
     $.ajax({
         type: 'GET',
         url: '/start_training',
