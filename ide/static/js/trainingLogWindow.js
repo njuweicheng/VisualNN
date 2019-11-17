@@ -6,7 +6,7 @@ class TrainingLogWindow extends React.Component {
     }
     render(){
         return (
-            <iframe width="1000" height="800" src="http://ubuntu:6006"></iframe>
+            <iframe width="100%" height="600" src="http://ubuntu:6006"></iframe>
         );
     }
 

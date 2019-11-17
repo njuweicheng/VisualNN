@@ -85,7 +85,9 @@ class TrainingParaWindow extends React.Component {
                         </div>
                     </div>
                     <div className="form-group">
-                        <button className="btn btn-success" id="start-btn" onClick={this.finishInput}>Start</button>
+                        <div className="col-sm-offset-2 col-sm-5">
+                            <input type="button" className="btn btn-success" id="start-btn" onClick={this.finishInput} value="Start" />
+                        </div>
                     </div>
 
                 </form>
