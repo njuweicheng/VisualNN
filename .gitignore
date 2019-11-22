@@ -32,4 +32,4 @@ models/
 
 celerybeat-schedule
 
-./user_data/*
+# user_data/*
