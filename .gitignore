@@ -31,3 +31,5 @@ ide/static/bundle/
 models/
 
 celerybeat-schedule
+
+user_data/
