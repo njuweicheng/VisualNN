@@ -9,8 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from utils.shapes import get_shapes, get_layer_shape, handle_concat_layer
 from scripts.train import vision
-# from selenium import webdriver
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def index(request):
     return render(request, 'index.html')
@@ -261,30 +261,24 @@ def fetch_model_history(request):
 @csrf_exempt
 def upload_training_data(request):
     print('In function upload_training_data.\n')
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
     if request.method == 'POST':
         try:
-            # home_path = os.environ['HOME']
 
-            # save current data file name in dataIndex.txt
-            # index_file_path = home_path + '/.VisualNN/data/dataIndex.txt'
+            uploadedFile = request.FILES.get('file')
 
-            uploaded_file = request.FILES.get('file')
-
-            file_name = uploaded_file.name
-            print(file_name)
+            fileName = uploadedFile.name
+            # print(file_name)
             username = request.POST.get('username')
-            print(username)
-            with open(index_file_path, 'a+') as f:
-                f.write(file_name + '\n')
-            # save data file
-            dir_path = home_path + '/.VisualNN/data'
-            folder = os.path.exists(dir_path)
-            if not folder:
-                os.makedirs(dir_path)            
-            save_path = dir_path + '/' + file_name
-            print("Uploading file %s to %s"%(file_name, save_path))
-            with open(save_path, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
+            userDir = os.path.join(USER_DATA_DIR, username)
+            saveDir = os.path.join(userDir, 'data')
+
+            if not os.path.exists(saveDir):
+                os.makedirs(saveDir)     
+            savePath = os.path.join(saveDir, fileName)       
+            print("Uploading file %s to %s"%(fileName, savePath))
+            with open(savePath, 'wb+') as destination:
+                for chunk in uploadedFile.chunks():
                     destination.write(chunk) 
             return JsonResponse({
                 'result': 'success'
@@ -298,22 +292,31 @@ def upload_training_data(request):
 
 @csrf_exempt
 def start_training(request):
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+
     if request.method == 'GET':
         try:
             print("start training...")
             batch_size = int(request.GET['batch_size'])
             epoch_times = int(request.GET['epoch_times'])
             lr = float(request.GET['lr'])
+            username = str(request.GET['username'])
+            MODEL_DIR = os.path.join(USER_DATA_DIR, username, 'model')
 
-            index_file_path = BASE_DIR + '/test_data/randomIndex.txt'
+            index_file_path = os.path.join(MODEL_DIR, 'index.txt')
+            if not os.path.exists(index_file_path):
+                return JsonResponse({
+                    'result': 'error',
+                    'error': 'Index file does not exist.'
+                })
             f = open(index_file_path, 'r')
             cur_model_name = f.readlines()[-1][:-1] + '.json'
 
-            model_path = BASE_DIR + '/test_model/' + cur_model_name	# TODO:set spcifically for each user account
+            model_path = os.path.join(MODEL_DIR, cur_model_name)	# TODO:set spcifically for each user account
             # print("Current model file path: %s"%(model_path))
 
             data_path = BASE_DIR + '/test_data/mnist.npz'		# TODO: use uploaded data and choose by user
-            result_path = BASE_DIR + '/test_result'
+            result_path = os.path.join(USER_DATA_DIR, username, 'result')          
             
             # webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
 

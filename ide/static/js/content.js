@@ -701,7 +701,8 @@ class Content extends React.Component {
         //action: 'ExportNet',
         action: export_action,
         net_name: this.state.net_name,
-        randomId: this.state.randomId
+        randomId: this.state.randomId,
+        username: this.state.userName
       });
 
     }.bind(this));
@@ -835,7 +836,8 @@ class Content extends React.Component {
         data: {
             batch_size: batch_size,
             epoch_times: epoch_times,
-            lr: lr
+            lr: lr,
+            username: this.state.userName
         },
         success: function (response){
             if (response.result == 'success'){

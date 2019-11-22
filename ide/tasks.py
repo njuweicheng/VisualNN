@@ -57,8 +57,10 @@ def export_caffe_prototxt(self, net, net_name, reply_channel):
 
 
 @task(name="export_to_keras")
-def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
+def export_keras_json(net, net_name, is_tf, reply_channel, action_type, username):
     print("In function export_keras_json. Action type: ", action_type)
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+
     net = yaml.safe_load(net)
     if net_name == '':
         net_name = 'Net'
@@ -349,9 +351,10 @@ def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
 	    })
     elif(action_type == 'SaveNetForTraining'):
         print('tasks.py save net for training')
-        with open(BASE_DIR + '/test_data/randomIndex.txt', 'a+') as f:
+        MODEL_DIR = os.path.join(USER_DATA_DIR, username, 'model')
+        with open(os.path.join(MODEL_DIR, 'index.txt'), 'a+') as f:
             f.write(str(randomId) + '\n')
-        with open(BASE_DIR + '/test_model/' + randomId + '.json', 'w') as f:
+        with open(os.path.join(MODEL_DIR,randomId + '.json'), 'w') as f:
             json.dump(json.loads(json_string), f, indent=4)
 	Channel(reply_channel).send({
 	    'text': json.dumps({
@@ -360,3 +363,8 @@ def export_keras_json(net, net_name, is_tf, reply_channel, action_type):
 		'id': 'randomId'
 	    })
 	})
+
+@task(name="start_tensorboard")
+def start_tensorboard(username):
+    result_path = os.path.join(BASE_DIR, 'user_data', username, 'result')
+    os.system('tensorboard --logdir=' + result_path + '/logs')

@@ -5,7 +5,7 @@ from channels import Group
 from channels.auth import channel_session_user, channel_session_user_from_http
 from caffe_app.models import Network, NetworkVersion, NetworkUpdates
 from ide.views import get_network_version
-from ide.tasks import export_caffe_prototxt, export_keras_json
+from ide.tasks import export_caffe_prototxt, export_keras_json, start_tensorboard
 
 
 def create_network_version(network, netObj):
@@ -104,15 +104,18 @@ def ws_receive(message):
         framework = data['framework']
         net = data['net']
         net_name = data['net_name']
+        username = data['username']
 
         reply_channel = message.reply_channel.name
 
         if (framework == 'caffe'):
             export_caffe_prototxt.delay(net, net_name, reply_channel)
         elif (framework == 'keras'):
-            export_keras_json.delay(net, net_name, False, reply_channel, action)
+            export_keras_json(net, net_name, False, reply_channel, action, username)
+            start_tensorboard(username)
         elif (framework == 'tensorflow'):
-            export_keras_json.delay(net, net_name, True, reply_channel, action)
+            export_keras_json(net, net_name, True, reply_channel, action, username)
+            start_tensorboard(username)
 
     elif (action == 'UpdateHighlight'):
         group_data = update_data(data, update_params['UpdateHighlight'])[1]

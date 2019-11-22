@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 import numpy as np
 from keras.models import model_from_json
@@ -51,8 +52,10 @@ def train_model(model_path, data_path, result_path, batch_size, epochs, lr):
                   optimizer=optimizer,
                   metrics=['accuracy'])
 
+
     timeStamp = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
-    tb = TensorBoard(log_dir=result_path+'/logs/'+timeStamp)
+    tb = TensorBoard(log_dir=result_path+'/logs/'+timeStamp)		# configure tensorboard
+    # os.system('tensorboard --logdir=' + result_path + '/logs')		# start tensorboard
     history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
