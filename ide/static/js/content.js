@@ -10,6 +10,7 @@ import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
 import Login from './login';
+import SelectDataSet from './selectDataSet';
 import TrainingParaWindow from './trainingParaWindow';
 import TrainingLogWindow from './trainingLogWindow';
 
@@ -63,7 +64,8 @@ class Content extends React.Component {
       randomUserId: null,
       highlightColor: '#000000',
       isLoggedIn: false,
-      userName: ''
+      userName: '',
+      dataSet: ''
     };
     
     this.userLogin = this.userLogin.bind(this);
@@ -138,7 +140,9 @@ class Content extends React.Component {
     this.getRandomColor = this.getRandomColor.bind(this);
     this.downloadModel = this.downloadModel.bind(this);
 
+    this.setDataSet = this.setDataSet.bind(this);
     this.openTrainingParaWindow = this.openTrainingParaWindow.bind(this);
+    this.openSelectDataSetWindow = this.openSelectDataSetWindow.bind(this);
     // this.saveNetForTraining = this.saveNetForTraining(this);
   }
   getRandomColor() {
@@ -811,14 +815,48 @@ class Content extends React.Component {
   }
 //over
 
-  openTrainingParaWindow(){
+  setDataSet(dataSetName){
+    this.setState({dataSet: dataSetName});
+  }
+
+  openSelectDataSetWindow(){
     if(!this.checkLogin())
         return;
     this.exportNet('keras', 'SaveNetForTraining');	// save net structure to local file system
 
+    let dataSets = ['data', 'set']
+    let has_model = true
+
+    /*
+    $.ajax({
+      url: '/get_training_data',
+      type: 'GET',
+      username: this.state.userName,
+      success : function (response){
+        if (response.result == 'success'){
+            // TODO handle the response, get the list of dataSets to dataSets
+        } else if (response.result == 'error'){
+            // TODO return if has current model
+            this.addError(response.error);
+        }
+      }.bind(this),
+      error : function (){
+        this.addError("Error");
+      }.bind(this)
+    })
+    */
+
+    if(has_model){
+        this.modalHeader = null;
+        this.modalContent = <SelectDataSet setDataSet={this.setDataSet} openTrainingParaWindow={this.openTrainingParaWindow} dataSets={dataSets} />;
+        this.openModal();
+    }
+  }
+
+  openTrainingParaWindow(){
     this.modalHeader = null;
     this.modalContent = <TrainingParaWindow submitParams={this.startTraining}/>;
-    this.openModal();
+//    this.openModal();
   }
 
 //startTraining
@@ -837,7 +875,8 @@ class Content extends React.Component {
             batch_size: batch_size,
             epoch_times: epoch_times,
             lr: lr,
-            username: this.state.userName
+            username: this.state.userName,
+            dataSet: this.state.dataSet
         },
         success: function (response){
             if (response.result == 'success'){
@@ -1436,7 +1475,7 @@ class Content extends React.Component {
 		<Tabs
 		selectedPhase={this.state.selectedPhase} 
 		changeNetPhase={this.changeNetPhase} 
-		startTraining={this.openTrainingParaWindow}
+		startTraining={this.openSelectDataSetWindow}
 		/>
              </div>
              <h5 className="sidebar-heading">插入网络层</h5>
