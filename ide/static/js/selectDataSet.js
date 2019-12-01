@@ -33,6 +33,14 @@ class SelectDataSet extends React.Component {
     }
 
     render(){
+        if(this.props.dataSets.length == 0){
+            return(
+                <div>
+                    <label className="col-sm-5">Please upload your data set!</label>
+                </div>
+            )
+        }
+
         let dataSelect = this.props.dataSets.map((dataSet, index)=>{
             return(
                 <div className = "form-group" key={index}>
@@ -46,6 +54,9 @@ class SelectDataSet extends React.Component {
         return (
             <div className="container">
                 <form className="form-horizontal" role="form">
+                    <div className="form-group">
+                        <label className="col-sm-5">Chose the data set:</label>
+                    </div>
                     {dataSelect}
                     <div className="form-group">
                         <div className="col-sm-5">

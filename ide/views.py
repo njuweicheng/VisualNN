@@ -301,7 +301,12 @@ def start_training(request):
             epoch_times = int(request.GET['epoch_times'])
             lr = float(request.GET['lr'])
             username = str(request.GET['username'])
-            MODEL_DIR = os.path.join(USER_DATA_DIR, username, 'model')
+            dataSet = str(request.GET['dataSet'])
+            
+            USER_DIR = os.path.join(USER_DATA_DIR, username)
+
+            DATA_DIR = os.path.join(USER_DIR, 'data')
+            MODEL_DIR = os.path.join(USER_DIR, 'model')
 
             index_file_path = os.path.join(MODEL_DIR, 'index.txt')
             if not os.path.exists(index_file_path):
@@ -315,7 +320,7 @@ def start_training(request):
             model_path = os.path.join(MODEL_DIR, cur_model_name)	# TODO:set spcifically for each user account
             # print("Current model file path: %s"%(model_path))
 
-            data_path = BASE_DIR + '/test_data/mnist.npz'		# TODO: use uploaded data and choose by user
+            data_path = os.path.join(DATA_DIR, dataSet)		# TODO: use uploaded data and choose by user
             result_path = os.path.join(USER_DATA_DIR, username, 'result')          
             
             # webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
@@ -332,5 +337,27 @@ def start_training(request):
             })
 
 
+@csrf_exempt
+def get_training_data(request):
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+    if request.method == 'GET':
+        try:
+            print("start getting training data sets...")
+            userName = str(request.GET['username'])
+            print(userName)
+            USER_DIR = os.path.join(USER_DATA_DIR, userName)
+            DATA_DIR = os.path.join(USER_DIR, 'data')
 
-
+            dataSets = os.listdir(DATA_DIR)
+            print(dataSets)
+            
+            return JsonResponse({
+                'result': 'success',
+                'dataSets': dataSets
+            })
+        except Exception, e:
+            print("Error in getting training data sets!")
+            return JsonResponse({
+                'result': 'error',
+                'error': 'Fail to get training data sets'
+            })

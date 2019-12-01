@@ -824,33 +824,34 @@ class Content extends React.Component {
         return;
     this.exportNet('keras', 'SaveNetForTraining');	// save net structure to local file system
 
-    let dataSets = ['data', 'set']
+    let dataSets = []
     let has_model = true
 
-    /*
     $.ajax({
       url: '/get_training_data',
       type: 'GET',
-      username: this.state.userName,
+      data: {
+        username: this.state.userName
+      },
       success : function (response){
         if (response.result == 'success'){
-            // TODO handle the response, get the list of dataSets to dataSets
+            dataSets = response.dataSets;
+            console.log(dataSets);
+            if(has_model){
+              this.modalHeader = null;
+              this.modalContent = <SelectDataSet setDataSet={this.setDataSet} 
+                openTrainingParaWindow={this.openTrainingParaWindow} dataSets={dataSets} />;
+              this.openModal();
+            }
         } else if (response.result == 'error'){
             // TODO return if has current model
-            this.addError(response.error);
+            // this.addError(response.error);
         }
       }.bind(this),
       error : function (){
         this.addError("Error");
       }.bind(this)
     })
-    */
-
-    if(has_model){
-        this.modalHeader = null;
-        this.modalContent = <SelectDataSet setDataSet={this.setDataSet} openTrainingParaWindow={this.openTrainingParaWindow} dataSets={dataSets} />;
-        this.openModal();
-    }
   }
 
   openTrainingParaWindow(){
