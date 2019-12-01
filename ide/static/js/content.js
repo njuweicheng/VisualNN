@@ -665,7 +665,7 @@ class Content extends React.Component {
     const netObj = JSON.parse(JSON.stringify(this.state.net));
     if (Object.keys(netObj).length == 0) {
       this.addError("No model available for export");
-      return;
+      return false;
     }
 
     Object.keys(netObj).forEach(layerId => {
@@ -673,8 +673,8 @@ class Content extends React.Component {
       Object.keys(layer.params).forEach(param => {
         layer.params[param] = layer.params[param][0];
         const paramData = data[layer.info.type].params[param];
-        if (layer.info.type == 'Python' || param == 'endPoint'){
-          return;
+        if (layer.info.type == 'Python' || param == 'endPoint'){  // TODO means what???
+          return false;
         }
         if (paramData.required === true && layer.params[param] === '') {
           error.push(`Error: "${paramData.name}" required in "${layer.props.name}" Layer`);
@@ -683,14 +683,17 @@ class Content extends React.Component {
     });
     if (error.length) {
       this.setState({ error });
+      return false;
     } else {
       callback(netObj);
+      return true;
     }
   }
   exportNet(framework, export_action) {
     if(!this.checkLogin())
-        return;
-    this.exportPrep(function(netData) {
+        return false;
+    
+    return this.exportPrep(function(netData) {
       Object.keys(netData).forEach(layerId => {
         delete netData[layerId].state;
         if (netData[layerId]['comments']) {
@@ -822,7 +825,9 @@ class Content extends React.Component {
   openSelectDataSetWindow(){
     if(!this.checkLogin())
         return;
-    this.exportNet('keras', 'SaveNetForTraining');	// save net structure to local file system
+    if(!this.exportNet('keras', 'SaveNetForTraining')){ // save net structure to local file system
+      return;
+    }
 
     let dataSets = []
     let has_model = true
