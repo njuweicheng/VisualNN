@@ -111,11 +111,11 @@ def ws_receive(message):
         if (framework == 'caffe'):
             export_caffe_prototxt.delay(net, net_name, reply_channel)
         elif (framework == 'keras'):
-            export_keras_json(net, net_name, False, reply_channel, action, username)
+            export_keras_json.delay(net, net_name, False, reply_channel, action, username)
             start_tensorboard(username)
         elif (framework == 'tensorflow'):
-            export_keras_json(net, net_name, True, reply_channel, action, username)
-            start_tensorboard(username)
+            export_keras_json.delay(net, net_name, True, reply_channel, action, username)
+            #start_tensorboard.delay(username)
 
     elif (action == 'UpdateHighlight'):
         group_data = update_data(data, update_params['UpdateHighlight'])[1]
