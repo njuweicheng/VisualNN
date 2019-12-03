@@ -886,7 +886,7 @@ class Content extends React.Component {
         },
         success: function (response){
             if (response.result == 'success'){
-                window.alert("Training process starts successfully...");
+                window.alert("Training process completed successfully...");
             }else if(response.result == 'error'){
                 this.addError(response.error);
             }

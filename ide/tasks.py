@@ -251,6 +251,7 @@ def export_keras_json(net, net_name, is_tf, reply_channel, action_type, username
                 processedLayer[layerId] = True
             else:
                 if (net[layerId]['info']['type'] in layer_map):
+                    print(net[layerId]['info']['type'])
                     net_out.update(layer_map[net[layerId]['info']['type']](
                         net[layerId], layer_in, layerId))  # no shape error
                 else:
