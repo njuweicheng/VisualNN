@@ -485,6 +485,7 @@ class Login extends React.Component {
                   </div>
                 </h5>
 
+                {/*
                 <h5 className="sidebar-heading extra-login">
                   OTHER
                 </h5>
@@ -508,6 +509,7 @@ class Login extends React.Component {
                     </a>
                   </div>
                 </h5>
+                */}
 
               </div>
             </div> 

@@ -55,12 +55,12 @@ class SelectDataSet extends React.Component {
             <div className="container">
                 <form className="form-horizontal" role="form">
                     <div className="form-group">
-                        <label className="col-sm-5">Chose the data set:</label>
+                        <label className="col-sm-5">Choose the data set:</label>
                     </div>
                     {dataSelect}
                     <div className="form-group">
                         <div className="col-sm-5">
-                            <input type="submit" className="btn btn-success" id="chose-btn" onClick={this.selectDone} value="Chose" />
+                            <input type="submit" className="btn btn-success" id="chose-btn" onClick={this.selectDone} value="Choose" />
                         </div>
                     </div>
 
