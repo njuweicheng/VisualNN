@@ -1,45 +1,60 @@
-from __future__ import print_function
-import sys
-import numpy as np
-from keras.models import model_from_json
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
+"""Usage: 
+train.py <model> <dataset> [options]
+
+Options:
+-h --help    show this
+--output=FILE    Output file [default: ~/.visualnn/temp.h5].
+--loss=LOSS      loss type [default: categorical_crossentropy]
+--shape=SHAPE    preprocessing's shape.
+
+"""
+from keras import backend as K
+from docopt import docopt
+from load_data import load_buildin_dataset
+from preprocessing import preprocess_buildin_dataset
+from docopt import docopt
 from keras.optimizers import RMSprop
+from keras.models import model_from_json
+#K.tensorflow_backend._get_available_gpus()
+
 
 batch_size = 128
 epochs = 20
-def load(path):
-    f = np.load(path)
-    x_train, y_train = f['x_train'], f['y_train']
-    x_test, y_test = f['x_test'], f['y_test']
-    f.close()
-    return (x_train, y_train), (x_test, y_test)
-
+batch_size = 32
+epochs = 15
 def buildModel(modelPath):
-    modelFile = open(modelPath, 'r')
-    model = modelFile.read()
-    modelFile.close()
-    model = model_from_json(model)
-    return model
+	modelFile = open(modelPath, 'r')
+	model = modelFile.read()
+	modelFile.close()
+	model = model_from_json(model)
+	return model
 
 
-model = buildModel(sys.argv[1])
-(x_train, y_train), (x_test, y_test) = load(sys.argv[2])
-print(x_train[0].shape)
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=RMSprop(),
-              metrics=['accuracy'])
+if __name__ == "__main__":
+	arguments = docopt(__doc__)
+	model_path = arguments["<model>"]
+	dataset = arguments["<dataset>"]
+	output_path = arguments["--output"]
+	shape = arguments["--shape"]
+	loss = arguments["--loss"]
+	print(loss)
 
-history = model.fit(x_train, y_train,
-                    batch_size=batch_size,
-                    epochs=epochs,
-                    verbose=1,
-                    validation_data=(x_test, y_test))
-score = model.evaluate(x_test, y_test, verbose=0)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
-model.save_weights(sys.argv[3])
+	model = buildModel(model_path)
+	(x_train, y_train), (x_test, y_test) = load_buildin_dataset(dataset)
+	x_train, y_train, x_test, y_test = preprocess_buildin_dataset(x_train, 
+									   y_train, x_test, y_test, dataset, shape)
 
+	model.compile(loss=loss,
+			  optimizer=RMSprop(),
+			  metrics=['accuracy'])
 
+	history = model.fit(x_train, y_train,
+					batch_size=batch_size,
+					epochs=epochs,
+					verbose=1,
+					validation_data=(x_test, y_test))
+	score = model.evaluate(x_test, y_test, verbose=0)
+	print('Test loss:', score[0])
+	print('Test accuracy:', score[1])
+	model.save_weights(sys.argv[3])

@@ -1,6 +1,7 @@
 import os
 import sys
 import yaml
+import copy
 import json
 from caffe_app.models import Network, NetworkVersion, NetworkUpdates
 from django.shortcuts import render
