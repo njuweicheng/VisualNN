@@ -18,9 +18,10 @@ from keras.callbacks import TensorBoard
 # result_path = 'result'    # set by system when finish training
 
 # TODO: 脚本的普遍适用性: 加载真正的图片数据集，由用户指定train/test比例，而不是像mnist这种已经分好了的数据集
-# TODO: 用户可选optimizer和loss类型
 # TODO: 用户指定分类的类别数 (?)
 # TODO: 训练结果可视化(非实时)
+
+# doc: http://faroit.com/keras-docs/2.0.8/optimizers/
 
 def load(path):
     f = np.load(path)
@@ -37,7 +38,7 @@ def buildModel(modelPath):
     return model
 
 
-def train_model(model_path, data_path, result_path, batch_size, epochs, lr):
+def train_model(model_path, data_path, result_path, batch_size, epochs, lr, opt, optPara):
     model = buildModel(model_path)
     (x_train, y_train), (x_test, y_test) = load(data_path)
     reshape = x_train[0].shape[0] * x_train[0].shape[1]
@@ -48,10 +49,41 @@ def train_model(model_path, data_path, result_path, batch_size, epochs, lr):
 
     optimizer = optimizers.rmsprop(lr=lr)
 
+    # Set optimizer
+    print("Using optimizer ", opt)
+    #print(optPara)
+    #print(type(optPara))
+    if opt == "SGD":
+        print("sgd, momentum=", optPara['momentum'])
+        optimizer = optimizers.SGD(lr=lr, momentum=optPara['momentum'], nesterov=False)
+    elif opt == "RMSprop":
+        print("rmsprop, rho=", optPara['rho'])
+        optimizer = optimizers.RMSprop(lr=lr, rho=optPara['rho'])
+    elif opt == "Adagrad":
+        print("adagrad")
+        optimizer = optimizers.Adagrad(lr=lr)
+    elif opt == "Adadelta":
+        print("adadelta")
+        optimizer = optimizers.Adadelta(lr=lr, rho=optPara['rho'])
+    elif opt == "Adam":
+        print("adam")
+        print("beta1=", optPara['beta1'])
+        print("beta2=", optPara['beta2'])
+        optimizer = optimizers.Adam(lr=lr, beta_1=optPara['beta1'], beta_2=optPara['beta2'])
+    elif opt == "Adamax":
+        print("adamax")
+        print("beta1=", optPara['beta1'])
+        print("beta2=", optPara['beta2'])
+        optimizer = optimizers.Adamax(lr=lr, beta_1=optPara['beta1'], beta_2=optPara['beta2'])
+    elif opt == "Nadam":
+        print("nadam")
+        print("beta1=", optPara['beta1'])
+        print("beta2=", optPara['beta2'])
+        optimizer = optimizers.Nadam(lr=lr, beta_1=optPara['beta1'], beta_2=optPara['beta2'])
+
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
                   metrics=['accuracy'])
-
 
     timeStamp = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
     tb = TensorBoard(log_dir=result_path+'/logs/'+timeStamp)		# configure tensorboard

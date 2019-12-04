@@ -303,6 +303,16 @@ def start_training(request):
             username = str(request.GET['username'])
             dataSet = str(request.GET['dataSet'])
             
+            optSelected = str(request.GET['optSelected'])
+            print(optSelected)
+
+            optPara = {}
+            optPara['rho'] = float(request.GET['rho'])
+            optPara['momentum'] = float(request.GET['momentum'])
+            optPara['beta1'] = float(request.GET['beta1'])
+            optPara['beta2'] = float(request.GET['beta2'])
+            print(optPara)
+
             USER_DIR = os.path.join(USER_DATA_DIR, username)
 
             DATA_DIR = os.path.join(USER_DIR, 'data')
@@ -317,15 +327,15 @@ def start_training(request):
             f = open(index_file_path, 'r')
             cur_model_name = f.readlines()[-1][:-1] + '.json'
 
-            model_path = os.path.join(MODEL_DIR, cur_model_name)	# TODO:set spcifically for each user account
+            model_path = os.path.join(MODEL_DIR, cur_model_name)	# set spcifically for each user account
             # print("Current model file path: %s"%(model_path))
 
-            data_path = os.path.join(DATA_DIR, dataSet)		# TODO: use uploaded data and choose by user
+            data_path = os.path.join(DATA_DIR, dataSet)		# use uploaded data and choose by user
             result_path = os.path.join(USER_DATA_DIR, username, 'result')          
             
             # webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
 
-            vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr)
+            vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr, optSelected, optPara)
             return JsonResponse({
                 'result': 'success'
             })

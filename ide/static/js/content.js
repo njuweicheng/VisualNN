@@ -866,14 +866,28 @@ class Content extends React.Component {
   }
 
 //startTraining
-  startTraining(batch_size, epoch_times, lr){
+  startTraining(batch_size, epoch_times, lr, optSelected, optParas){
+    // console.log("Content.js start training function...");
     this.closeModal();
     console.log("In function content.js start training.");
+    //console.log(optParas);
 
     this.dismissAllErrors();
+    var info = {
+        'rho': '-1',
+        'momentum': '-1',
+        'beta1': '-1',
+        'beta2': '-1'
+    };
+    
+    for (var key in optParas){
+        info[key] = optParas[key];
+    }
+    console.log(info);
     // open log window
     this.modalContent = <TrainingLogWindow />		
     this.openModal();
+
     $.ajax({
         type: 'GET',
         url: '/start_training',
@@ -881,6 +895,11 @@ class Content extends React.Component {
             batch_size: batch_size,
             epoch_times: epoch_times,
             lr: lr,
+            optSelected: optSelected,
+            rho: info['rho'],
+            momentum: info['momentum'],
+            beta1: info['beta1'],
+            beta2: info['beta2'],
             username: this.state.userName,
             dataSet: this.state.dataSet
         },
