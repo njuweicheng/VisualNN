@@ -35,3 +35,5 @@ celerybeat-schedule
 media/*
 
 weight/*
+
+user_data/*
