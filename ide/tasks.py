@@ -57,8 +57,10 @@ def export_caffe_prototxt(self, net, net_name, reply_channel):
 
 
 @task(name="export_to_keras")
-def export_keras_json(net, net_name, is_tf, reply_channel):
-    print("In function export_keras_json")
+def export_keras_json(net, net_name, is_tf, reply_channel, action_type, username):
+    print("In function export_keras_json. Action type: ", action_type)
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+
     net = yaml.safe_load(net)
     if net_name == '':
         net_name = 'Net'
@@ -249,6 +251,7 @@ def export_keras_json(net, net_name, is_tf, reply_channel):
                 processedLayer[layerId] = True
             else:
                 if (net[layerId]['info']['type'] in layer_map):
+                    print(net[layerId]['info']['type'])
                     net_out.update(layer_map[net[layerId]['info']['type']](
                         net[layerId], layer_in, layerId))  # no shape error
                 else:
@@ -291,8 +294,8 @@ def export_keras_json(net, net_name, is_tf, reply_channel):
 
     randomId = datetime.now().strftime('%Y%m%d%H%M%S') + randomword(5)
     # save Id index in one line
-    with open(BASE_DIR + '/media/randomIndex.txt', 'a+') as f:
-        f.write(str(randomId) + '\n')
+    # with open(BASE_DIR + '/media/randomIndex.txt', 'a+') as f:
+        # f.write(str(randomId) + '\n')
 
     with open(BASE_DIR + '/media/' + randomId + '.json', 'w') as f:
         json.dump(json.loads(json_string), f, indent=4)
@@ -302,46 +305,67 @@ def export_keras_json(net, net_name, is_tf, reply_channel):
         layer_data = {'name': layer}
         layer_data.update(custom_layers_config.config[layer])
         custom_layers_response.append(layer_data)
+	
+    if(action_type == 'ExportNet'):
+	print('In function export_keras_json, action type: ExportNet')
+	if(is_tf):
+            # export part for tensorflow from keras model
+            input_file = randomId + '.json'
+            output_file = randomId
 
-    if(is_tf):
-        # export part for tensorflow from keras model
-        input_file = randomId + '.json'
-        output_file = randomId
+            K.set_learning_phase(0)
 
-        K.set_learning_phase(0)
+            output_fld = BASE_DIR + '/media/'
 
-        output_fld = BASE_DIR + '/media/'
+            with open(output_fld + input_file, 'r') as f:
+                json_str = f.read()
 
-        with open(output_fld + input_file, 'r') as f:
-            json_str = f.read()
+	    json_str = json_str.strip("'<>() ").replace('\'', '\"')
+	    lrnLayer = imp.load_source('LRN', BASE_DIR + '/keras_app/custom_layers/lrn.py')
 
-        json_str = json_str.strip("'<>() ").replace('\'', '\"')
-        lrnLayer = imp.load_source('LRN', BASE_DIR + '/keras_app/custom_layers/lrn.py')
+	    model = model_from_json(json_str, {'LRN': lrnLayer.LRN})
 
-        model = model_from_json(json_str, {'LRN': lrnLayer.LRN})
+	    sess = K.get_session()
+	    tf.train.write_graph(sess.graph.as_graph_def(add_shapes=True), output_fld,
+				output_file + '.pbtxt', as_text=True)
 
-        sess = K.get_session()
-        tf.train.write_graph(sess.graph.as_graph_def(add_shapes=True), output_fld,
-                             output_file + '.pbtxt', as_text=True)
+	    Channel(reply_channel).send({
+		'text': json.dumps({
+		    'result': 'success',
+		    'action': 'ExportNet',
+		    'id': 'randomId',
+		    'name': randomId + '.pbtxt',
+		    'url': '/media/' + randomId + '.pbtxt',
+		    'customLayers': custom_layers_response
+		})
+	    })
+        else:
+            Channel(reply_channel).send({
+                'text': json.dumps({
+		    'result': 'success',
+		    'action': 'ExportNet',
+		    'id': 'randomId',
+		    'name': randomId + '.json',
+		    'url': '/media/' + randomId + '.json',
+		    'customLayers': custom_layers_response
+	        })
+	    })
+    elif(action_type == 'SaveNetForTraining'):
+        print('tasks.py save net for training')
+        MODEL_DIR = os.path.join(USER_DATA_DIR, username, 'model')
+        with open(os.path.join(MODEL_DIR, 'index.txt'), 'a+') as f:
+            f.write(str(randomId) + '\n')
+        with open(os.path.join(MODEL_DIR,randomId + '.json'), 'w') as f:
+            json.dump(json.loads(json_string), f, indent=4)
+	Channel(reply_channel).send({
+	    'text': json.dumps({
+		'result': 'success',
+		'action': 'SaveNetForTraining',
+		'id': 'randomId'
+	    })
+	})
 
-        Channel(reply_channel).send({
-            'text': json.dumps({
-                'result': 'success',
-                'action': 'ExportNet',
-                'id': 'randomId',
-                'name': randomId + '.pbtxt',
-                'url': '/media/' + randomId + '.pbtxt',
-                'customLayers': custom_layers_response
-            })
-        })
-    else:
-        Channel(reply_channel).send({
-            'text': json.dumps({
-                'result': 'success',
-                'action': 'ExportNet',
-                'id': 'randomId',
-                'name': randomId + '.json',
-                'url': '/media/' + randomId + '.json',
-                'customLayers': custom_layers_response
-            })
-        })
+@task(name="start_tensorboard")
+def start_tensorboard(username):
+    result_path = os.path.join(BASE_DIR, 'user_data', username, 'result')
+    os.system('tensorboard --logdir=' + result_path + '/logs')

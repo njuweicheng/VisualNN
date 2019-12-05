@@ -8,7 +8,6 @@ class ModelZoo extends React.Component {
     }
     mouseClick(event, id) {
       this.refs.mymodels.className = "hide";
-{/*
       this.refs.recognition.className = "hide";
       this.refs.detection.className = "hide";
       this.refs.retrieval.className = "hide";
@@ -16,19 +15,16 @@ class ModelZoo extends React.Component {
       this.refs.caption.className = "hide";
       this.refs.segmentation.className = "hide";
       this.refs.vqa.className = "hide";
-*/}
       $('#sidebar-nav li a').removeClass();
       event.currentTarget.className = "bold";
       if (id == "all") {
         this.refs.mymodels.className = " ";
-{/*
         this.refs.detection.className = " ";
         this.refs.retrieval.className = " ";
         this.refs.seq2seq.className = " ";
         this.refs.caption.className = " ";
         this.refs.segmentation.className = " ";
         this.refs.vqa.className = " ";
-*/}
       } 
       else if (id == "recognition")
       {
@@ -112,8 +108,7 @@ class ModelZoo extends React.Component {
                 </div>
               <li>
                 <a className="bold" onClick={(event) => this.mouseClick(event, "all")}>所有模型</a>
-              </li>
-{/*              
+              </li>       
               <li>
                 <a onClick={(event) => this.mouseClick(event, "recognition")}>Recognition</a>
               </li>
@@ -135,7 +130,6 @@ class ModelZoo extends React.Component {
               <li>
                 <a onClick={(event) => this.mouseClick(event, "vqa")}>VQA</a>
               </li>
-*/}
             </ul>
           </div>
         </div>
@@ -149,7 +143,6 @@ class ModelZoo extends React.Component {
             <ModelElement importNet={this.props.importNet} framework="keras" id="lstm" displayName="LSTM"> </ModelElement>
             <ModelElement importNet={this.props.importNet} framework="keras" id="vgg" displayName="VGG"> </ModelElement>
           </div>
-{/*
           <div ref="recognition">
             <ModelElement importNet={this.props.importNet} framework="caffe" id="lenet" displayName="MNIST LeNet"> </ModelElement>
             <ModelElement importNet={this.props.importNet} framework="caffe" id="cifar10_full" displayName="Cifar10 CNN"> </ModelElement>
@@ -194,7 +187,6 @@ class ModelZoo extends React.Component {
             <ModelElement importNet={this.props.importNet} framework="keras" id="VQA2" displayName="VQA2"> </ModelElement>
             <ModelElement importNet={this.props.importNet} framework="caffe" id="mlpVQA" displayName="VQS"> </ModelElement>
           </div>
-*/}
         </div>
       </div>
     </div>

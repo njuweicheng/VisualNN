@@ -5,7 +5,7 @@ from channels import Group
 from channels.auth import channel_session_user, channel_session_user_from_http
 from caffe_app.models import Network, NetworkVersion, NetworkUpdates
 from ide.views import get_network_version
-from ide.tasks import export_caffe_prototxt, export_keras_json
+from ide.tasks import export_caffe_prototxt, export_keras_json, start_tensorboard
 
 
 def create_network_version(network, netObj):
@@ -98,20 +98,24 @@ def ws_receive(message):
     if ('networkId' in message.channel_session):
         networkId = message.channel_session['networkId']
 
-    if (action == 'ExportNet'):
+    # differ logic of export net and save net for training.
+    if (action == 'ExportNet' or action == 'SaveNetForTraining'):
         # async export call
         framework = data['framework']
         net = data['net']
         net_name = data['net_name']
+        username = data['username']
 
         reply_channel = message.reply_channel.name
 
         if (framework == 'caffe'):
             export_caffe_prototxt.delay(net, net_name, reply_channel)
         elif (framework == 'keras'):
-            export_keras_json.delay(net, net_name, False, reply_channel)
+            export_keras_json.delay(net, net_name, False, reply_channel, action, username)
+            start_tensorboard(username)
         elif (framework == 'tensorflow'):
-            export_keras_json.delay(net, net_name, True, reply_channel)
+            export_keras_json.delay(net, net_name, True, reply_channel, action, username)
+            #start_tensorboard.delay(username)
 
     elif (action == 'UpdateHighlight'):
         group_data = update_data(data, update_params['UpdateHighlight'])[1]
