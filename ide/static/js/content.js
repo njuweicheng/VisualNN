@@ -13,6 +13,7 @@ import Login from './login';
 import SelectDataSet from './selectDataSet';
 import TrainingParaWindow from './trainingParaWindow';
 import TrainingLogWindow from './trainingLogWindow';
+import ChooseDatasetWindow from './chooseDatasetWindow';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -143,7 +144,7 @@ class Content extends React.Component {
     this.setDataSet = this.setDataSet.bind(this);
     this.openTrainingParaWindow = this.openTrainingParaWindow.bind(this);
     this.openSelectDataSetWindow = this.openSelectDataSetWindow.bind(this);
-    // this.saveNetForTraining = this.saveNetForTraining(this);
+    this.openChooseDatasetWindow = this.openChooseDatasetWindow.bind(this);
   }
   getRandomColor() {
     var rint = Math.round(0xffffff * Math.random());
@@ -858,6 +859,19 @@ class Content extends React.Component {
       }.bind(this)
     })
   }
+  openChooseDatasetWindow(){
+    if(!this.checkLogin())
+        return;
+    if(!this.exportNet('keras', 'SaveNetForTraining')){ // save net structure to local file system
+      return;
+    }
+    let supportedDatasets = ['mnist','imdb','cifar10'];
+    this.modalContent = <ChooseDatasetWindow dataSets={supportedDatasets} 
+        openTrainingParaWindow={this.openTrainingParaWindow} 
+        setDataSet={this.setDataSet} />;
+    console.log("choose dataset: ", this.state.dataSet);
+    this.openModal();
+  }
 
   openTrainingParaWindow(){
     this.modalHeader = null;
@@ -911,7 +925,7 @@ class Content extends React.Component {
             }
         }.bind(this),
         error : function (){
-            this.addError("Error");
+            // this.addError("Error");
         }.bind(this)
     });
   }
@@ -1500,7 +1514,7 @@ class Content extends React.Component {
 		<Tabs
 		selectedPhase={this.state.selectedPhase} 
 		changeNetPhase={this.changeNetPhase} 
-		startTraining={this.openSelectDataSetWindow}
+		startTraining={this.openChooseDatasetWindow}
 		/>
              </div>
              <h5 className="sidebar-heading">插入网络层</h5>

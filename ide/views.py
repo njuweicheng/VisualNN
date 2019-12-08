@@ -9,7 +9,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from utils.shapes import get_shapes, get_layer_shape, handle_concat_layer
-from scripts.train import vision
+from scripts.train_model import start_train_model
+#from scripts.train import vision
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -331,12 +332,13 @@ def start_training(request):
             model_path = os.path.join(MODEL_DIR, cur_model_name)	# set spcifically for each user account
             # print("Current model file path: %s"%(model_path))
 
-            data_path = os.path.join(DATA_DIR, dataSet)		# use uploaded data and choose by user
-            result_path = os.path.join(USER_DATA_DIR, username, 'result')          
+            # data_path = os.path.join(DATA_DIR, dataSet)		# use uploaded data and choose by user
+            result_path = os.path.join(USER_DATA_DIR, username, 'result')         
+            start_train_model(model_path, dataSet, result_path, batch_size, epoch_times, lr, optSelected, optPara) 
             
             # webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
 
-            vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr, optSelected, optPara)
+            #vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr, optSelected, optPara)
             return JsonResponse({
                 'result': 'success'
             })
