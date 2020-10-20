@@ -112,8 +112,8 @@ class ModelZoo extends React.Component {
                 </div>
               <li>
                 <a className="bold" onClick={(event) => this.mouseClick(event, "all")}>所有模型</a>
-              </li>
-{/*              
+              </li>       
+{/*
               <li>
                 <a onClick={(event) => this.mouseClick(event, "recognition")}>Recognition</a>
               </li>

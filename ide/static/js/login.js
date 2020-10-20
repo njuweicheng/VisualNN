@@ -1,21 +1,68 @@
 import React from 'react';
+import AlertLabel from './alertLabel';
 
 class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isOpenLoginPanel: false
-    }
-    this.tryLogin = this.tryLogin.bind(this);
+      loginState: false,
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false,
+
+      /* alertType choices:
+       * 1. alert alert-success
+       * 2. alert alert-info
+       * 3. alert alert-warning
+       * 4. alert alert-danger
+       * additional attribute: alert-dismissible
+       */
+      ifShowAlertSignUp: false,
+      ifShowAlertLogIn: false,
+      alertText: '',
+      alertType: 'alert alert-danger',
+      loginName: ''
+    };
+    // this.tryLogin = this.tryLogin.bind(this);
+    this.trySignUp = this.trySignUp.bind(this);
+    this.cancelSignUp = this.cancelSignUp.bind(this);
+    this.confirmSignUp = this.confirmSignUp.bind(this);
     this.logoutUser = this.logoutUser.bind(this);
+
+    this.loginUser = this.loginUser.bind(this);
+
+    this.clearSignUpInput = this.clearSignUpInput.bind(this);
+    this.clearLoginInput = this.clearLoginInput.bind(this);
   }
+
   componentWillMount() {
-    this.setState({ loginState: false });
+    this.setState({ 
+      loginState: false,
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false ,
+      ifShowAlertSignUp: false,
+      ifShowAlertLogIn: false,
+      loginName: ''
+    });
+    
   }
+
   componentDidMount() {
-    this.tryLogin(false);
+    // this.tryLogin(false);
   }
+
+  clearLoginInput(){
+    $('#login-username-input')[0].value = "";
+    $('#login-password-input')[0].value = "";
+  }
+
+  clearSignUpInput(){
+    $('#sign-up-username-input')[0].value = "";
+    $('#sign-up-password-input')[0].value = "";
+    $('#sign-up-password-repeat')[0].value = "";
+  }
+
   logoutUser() {
+/*
     $.ajax({
       url: '/accounts/logout',
       type: 'GET',
@@ -33,26 +80,134 @@ class Login extends React.Component {
         this.addError("Error occurred while logging out");
       }.bind(this)
     });
-    this.setState({ isOpenLoginPanel: false });
+*/
+    this.setState({ 
+      loginState: false,
+      loginName: '',
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false,
+      ifShowAlertSignUp: false,
+      ifShowAlertLogIn: false
+    });
+    this.props.userLogOutMain();
   }
+
+  loginUser() {
+
+      let username = $('#login-username-input')[0].value;
+      let password = $('#login-password-input')[0].value;
+
+      if (username.length == 0){
+
+	this.setState({
+            ifShowAlertLogIn: true,
+            alertText: "User name can't be empty!",
+            alertType: 'alert alert-danger'
+	});
+      }else if(password.length == 0){
+    
+	this.setState({
+            ifShowAlertLogIn: true,
+            alertText: "Password can't be empty!",
+            alertType: 'alert alert-danger'
+	});
+      } else{
+
+      $.ajax({
+          url: '/backendAPI/logIn',
+          type: 'GET',
+          contentType: false,
+          data: {
+              username: username,
+              password: password
+          },
+          success: function(response){
+              switch(response.result){
+                  case 'user_login_success':
+                      this.setState({
+                          isOpenLoginPanel: false,
+                          isOpenSignUpPanel: false,
+                          ifShowAlertSignUp: false,
+                          loginState: true,
+                          loginName: response.username
+                      });
+                      this.props.userLogInMain(response.username);
+                      break;
+                  case 'user_login_password_error':
+                      this.setState({
+                          isOpenLoginPanel: true,
+                          isOpenSignUpPanel: false,
+                          ifShowAlertLogIn: true,
+                          alertText: "Invalid password, please try again.",
+                          alertType: 'alert alert-danger'
+                      });
+                      break;
+                  case 'user_name_not_exist':
+                      this.setState({
+                          isOpenLoginPanel: true,
+                          isOpenSignUpPanel: false,
+                          ifShowAlertLogIn: true,
+                          alertText: "Username doesn't exist, please try again.",
+                          alertType: 'alert alert-danger'
+                      });
+                      break;
+                  case 'database_error':
+                      this.setState({
+                          isOpenLoginPanel: true,
+                          isOpenSignUpPanel: false,
+                          ifShowAlertLogIn: true,
+                          alertText: "Unexpected error, please try again.",
+                          alertType: 'alert alert-danger'
+                      });
+                      break;
+                  case 'user_login_failure': 
+                      this.setState({
+                          isOpenLoginPanel: true,
+                          isOpenSignUpPanel: false,
+                          ifShowAlertLogIn: true,
+                          alertText: "Unexpected error, please try again.",
+                          alertType: 'alert alert-danger'
+                      });
+                      break;
+                  default:
+                      console.log('Log in unhandled case.');
+              }
+          }.bind(this),
+          error(){}
+      });
+    }
+
+  }
+
   openLoginPanel() {
     this.setState({
-      isOpenLoginPanel: true
+      isOpenLoginPanel: true,
+      ifShowAlertSignUp: false,
+      ifShowAlertLogIn: false
     });
   }
+
   closeLoginPanel() {
     this.setState({
-      isOpenLoginPanel: false
+      isOpenLoginPanel: false,
+      isOpenSignUpPanel: false,
+      ifShowAlertSignUp: false,
+      ifShowAlertLogIn: false
+
     });
   }
+/*
   tryLogin(showNotification) {
     let username = null;
     let password = null;
 
     if (this.state.isOpenLoginPanel) {
-      username = $('#login-input')[0].value;
-      password = $('#password-input')[0].value;
+      username = $('#login-username-input')[0].value;
+      password = $('#login-password-input')[0].value;
     }
+    console.log(username);
+    console.log(password);
+    console.log(showNotification);
 
     $.ajax({
       url: '/backendAPI/checkLogin',
@@ -92,50 +247,231 @@ class Login extends React.Component {
         this.setState({ loginState: false });
       }.bind(this)
     });
+
   }
+*/
+
+  // try signing up, change frontend.
+  trySignUp(){
+    this.clearLoginInput();
+    this.setState({ isOpenSignUpPanel: true });
+  }
+
+  // cancel signing up
+  cancelSignUp(){
+    this.setState({ 
+        isOpenSignUpPanel: false,
+	ifShowAlertSignUp: false,
+	ifShowAlertLogIn: false
+    });
+    this.clearSignUpInput();
+  }
+
+
+  // confirm signing up
+  confirmSignUp() {
+    
+    console.log("Confirm Signup.");
+
+
+    let username = $('#sign-up-username-input')[0].value;
+    let password = $('#sign-up-password-input')[0].value;
+    let passwordRepeat = $('#sign-up-password-repeat')[0].value;
+
+    console.log(username);
+    console.log(password);
+    console.log(passwordRepeat);
+
+    if (username.length == 0){
+
+	this.setState({
+            ifShowAlertSignUp: true,
+            alertText: "User name can't be empty!",
+            alertType: 'alert alert-danger'
+	});
+
+    }else if(password.length == 0){
+    
+	this.setState({
+            ifShowAlertSignUp: true,
+            alertText: "Password can't be empty!",
+            alertType: 'alert alert-danger'
+	});
+
+    }else if(password !== passwordRepeat){
+
+	this.setState({
+            ifShowAlertSignUp: true,
+            alertText: "Password discrepancy!",
+            alertType: 'alert alert-danger'
+	});
+
+    } else{
+
+	$.ajax({
+            url: '/backendAPI/signUp',
+            type: 'GET',
+            contentType: false,
+            data: {
+		username: username,
+		password: password
+            },
+            success: function(response) {
+
+                switch(response.result){
+                    case 'user_already_exists':
+                        
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: true,
+                            ifShowAlertSignUp: true,
+                            alertText: "Username already exists, please use another name.",
+                            alertType: 'alert alert-warning'
+                        });
+                    
+                        console.log('User ' + response.username + ' already exists.');
+                        break;
+                    case 'user_create_success':
+                        
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: false,
+                            ifShowAlertSignUp: false,
+
+                            ifShowAlertLogIn: true,
+                            alertText: "Sign up successfully, you can now log in.",
+                            alertType: 'alert alert-success'
+                        });
+                        console.log('User ' + response.username + ' created successfully.');
+                        break;
+                    case 'user_create_failure':
+    
+                        this.setState({
+                            isOpenLoginPanel: true,
+                            isOpenSignUpPanel: true,
+                            isShowAlertSignUp: true,
+                            alertText: "Error occurs, please try again.",
+                            alertType: 'alert alert-danger'
+                        });
+
+                        console.log(response.info);
+                        console.log('User create failure.');
+                        break;
+                    default:
+                        console.log('Unhandled case in sign up!');
+                }
+          
+            }.bind(this),
+            error() {
+            }
+	});
+
+	this.clearSignUpInput();
+    } 
+  }
+
   render() {
-    let loginPanel = null;
+    let panel = null;
+    let signUpAlertDiv = null;
+    let logInAlertDiv = null;
+
+    if(this.state.ifShowAlertSignUp){
+
+	signUpAlertDiv = (
+            <AlertLabel 
+		display="block"
+		text={this.state.alertText}
+		alertType={this.state.alertType}
+            />
+	);
+    }else if(this.state.ifShowAlertLogIn){
+	logInAlertDiv = (
+            <AlertLabel 
+		display="block"
+		text={this.state.alertText}
+		alertType={this.state.alertType}
+            />
+	);
+    }
 
     if (this.state.isOpenLoginPanel) {
-      loginPanel = (
-        <div id="login-prepanel" className="login-prepanel-enabled" onClick={
+      if (this.state.isOpenSignUpPanel){
+          panel = (
+            <div id="login-prepanel" className="login-prepanel-enabled" onClick={
               (e) => {
-                if (e.target.id == "login-prepanel" || e.target.id == "login-panel-close") {
+                if (e.target.id == "login-prepanel") {
                   this.closeLoginPanel();
                 }
               }
             }>
             <div className="login-panel">
-              <i className="material-icons" id="login-panel-close">close</i>
-              <div className="login-logo">
-                <a href="http://fabrik.cloudcv.org">
-                  <img src="/static/img/fabrik_t.png" className="img-responsive" alt="logo" id="login-logo"></img>
-                </a>
-              </div>
+              <button type="button" className="btn btn-default pull-right" aria-label="Left Align" 
+                       onClick={ () => this.closeLoginPanel() }>
+                  <div className="glyphicon glyphicon-remove" aria-hidden="true"></div>
+              </button>
               <div className="login-panel-main">
+                {signUpAlertDiv}
                 <h5 className="sidebar-heading">
-                  LOGIN
-                  <div className="login-invalid">- invalid</div>
+                  <input placeholder="Enter user name" autoCorrect="off" id="sign-up-username-input"></input>
                 </h5>
                 <h5 className="sidebar-heading">
-                  <input placeholder="login" autoCorrect="off" id="login-input"></input>
+                  <input type="password" placeholder="Enter password" id="sign-up-password-input"></input>
                 </h5>
                 <h5 className="sidebar-heading">
-                  PASSWORD
-                  <div className="login-invalid">- invalid</div>
-                </h5>
-                <h5 className="sidebar-heading">
-                  <input type="password" placeholder="password" id="password-input"></input>
+                  <input type="password" placeholder="Enter password again" id="sign-up-password-repeat"></input>
                 </h5>
 
-                <div id="login-error-message">
-                  <i className="material-icons">close</i>
-                  <div id="login-error-message-text"></div>
-                </div>
+		
+                <h5 className="sidebar-heading login-prebtn">
+                  <div className="col-md-6 login-button" id="sign-up-back-button">
+                    <a className="btn btn-block btn-social" onClick={() => this.cancelSignUp() } style={{width: '105px'}}>
+                      <span className="fa fa-sign-in"></span>Back
+                    </a>
+                  </div>
+                </h5>
+
+                <h5 className="sidebar-heading login-prebtn">
+                
+		<div className="col-md-5 login-button" id="signup-confirm-button">
+                    <a className="btn btn-block btn-social" onClick={ () => this.confirmSignUp() } style={{width: '105px'}}>
+                      <span className="fa fa-sign-in"></span>Sign Up
+                    </a>
+                  </div>
+                </h5>
+
+            </div>
+            </div>
+        </div>
+          );
+        }
+         else {
+          panel = (
+          <div id="login-prepanel" className="login-prepanel-enabled" onClick={
+              (e) => {
+                if (e.target.id == "login-prepanel") {
+                  this.closeLoginPanel();
+                }
+              }
+            }>
+            <div className="login-panel">
+              <button type="button" className="btn btn-default pull-right" aria-label="Left Align" 
+                       onClick={ () => this.closeLoginPanel() }>
+                  <div className="glyphicon glyphicon-remove" aria-hidden="true"></div>
+              </button>
+
+              <div className="login-panel-main">
+                {logInAlertDiv}
+                <h5 className="sidebar-heading">
+                  <input placeholder="Enter user name" autoCorrect="off" id="login-username-input"></input>
+                </h5>
+                <h5 className="sidebar-heading">
+                  <input type="password" placeholder="Enter password" id="login-password-input"></input>
+                </h5>
+
 
                 <h5 className="sidebar-heading login-prebtn">
                   <div className="col-md-6 login-button" id="login-button">
-                    <a className="btn btn-block btn-social" onClick={ () => this.tryLogin(true) } style={{width: '105px'}}>
+                    <a className="btn btn-block btn-social" onClick={ () => this.loginUser() } style={{width: '105px'}}>
                       <span className="fa fa-sign-in"></span>Login
                     </a>
                   </div>
@@ -143,12 +479,13 @@ class Login extends React.Component {
 
                 <h5 className="sidebar-heading login-prebtn">
                   <div className="col-md-5 login-button">
-                    <a className="btn btn-block btn-social" onClick={() => window.location="/accounts/google/login"}  style={{width: '105px'}}>
+                    <a className="btn btn-block btn-social" onClick={() => this.trySignUp()}  style={{width: '105px'}}>
                       <span className="fa fa-user-plus"></span>Sign up
                     </a>
                   </div>
                 </h5>
 
+                {/*
                 <h5 className="sidebar-heading extra-login">
                   OTHER
                 </h5>
@@ -172,38 +509,42 @@ class Login extends React.Component {
                     </a>
                   </div>
                 </h5>
+                */}
 
               </div>
             </div> 
           </div>);
+        }
     }
 
     if(this.state.loginState) {
       return (
         <div>
-          <h5 className="sidebar-heading" id="sidebar-login-button" onClick={
-            () => {
-              this.logoutUser();
-          }}>
-          <div>LOGOUT</div>
-          </h5>
-          <div id="successful-login-notification">
-            <i className="material-icons">done</i>
-            <div id="successful-login-notification-message"></div>
-          </div>
+            <div className="col-md-5">
+                <h5 className="sidebar-heading text-center">{this.state.loginName}</h5>
+            </div>
+            <div className="col-md-7">
+                <h5 className="sidebar-heading" id="sidebar-login-button" onClick={
+                    () => { this.logoutUser();}}>
+                    <div>LOGOUT</div>
+                </h5>
+            </div>
         </div>
       )
     }
     else {
       return (
         <div>
-          <h5 className="sidebar-heading" id="sidebar-login-button" onClick={
-            () => {
-              this.openLoginPanel();
-            }}>
-            <div>LOGIN</div>
-          </h5>
-          {loginPanel}
+          <div className="col-md-5">
+              <h5 className="sidebar-heading text-center">Not logged in.</h5>      
+          </div>
+          <div className="col-md-7">
+              <h5 className="sidebar-heading" id="sidebar-login-button" onClick={
+                  () => {this.openLoginPanel();}}>
+                  <div>LOGIN</div>
+              </h5>
+          </div>
+          {panel}
         </div>
       )
     }
@@ -212,7 +553,11 @@ class Login extends React.Component {
 
 Login.propTypes = {
   setUserId: React.PropTypes.func,
-  setUserName: React.PropTypes.func
+  setUserName: React.PropTypes.func,
+  userLogInMain: React.PropTypes.func,
+  userLogOutMain: React.PropTypes.func
 };
 
 export default Login;
+
+

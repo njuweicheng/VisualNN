@@ -9,6 +9,11 @@ import data from './data';
 import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
 import ModelZoo from './modelZoo';
+import Login from './login';
+import SelectDataSet from './selectDataSet';
+import TrainingParaWindow from './trainingParaWindow';
+import TrainingLogWindow from './trainingLogWindow';
+import ChooseDatasetWindow from './chooseDatasetWindow';
 
 import ImportTextbox from './importTextbox';
 import UrlImportModal from './urlImportModal';
@@ -20,13 +25,13 @@ import $ from 'jquery'
 
 const infoStyle = {
   content : {
-    top                   : '50%',
+    top                   : '40%',
     left                  : '55%',
     right                 : '60%',
     bottom                : 'auto',
     marginRight           : '-50%',
     transform             : 'translate(-50%, -50%)',
-    borderRadius          : '8px'
+    borderRadius          : '5px'
   },
   overlay: {
     zIndex                : 100
@@ -58,9 +63,16 @@ class Content extends React.Component {
       isForked: false,
       socket: null,
       randomUserId: null,
-      highlightColor: '#000000'
+      highlightColor: '#000000',
+      isLoggedIn: false,
+      userName: '',
+      dataSet: ''
     };
     
+    this.userLogin = this.userLogin.bind(this);
+    this.userLogout = this.userLogout.bind(this);
+    this.checkLogin = this.checkLogin.bind(this);
+
     this.uploadData=this.uploadData.bind(this);			{/*upload data*/}
     this.startTraining = this.startTraining.bind(this);		{/*start training*/}
     this.addNewLayer = this.addNewLayer.bind(this);
@@ -128,6 +140,11 @@ class Content extends React.Component {
     this.changeCommentOnLayer = this.changeCommentOnLayer.bind(this);
     this.getRandomColor = this.getRandomColor.bind(this);
     this.downloadModel = this.downloadModel.bind(this);
+
+    this.setDataSet = this.setDataSet.bind(this);
+    this.openTrainingParaWindow = this.openTrainingParaWindow.bind(this);
+    this.openSelectDataSetWindow = this.openSelectDataSetWindow.bind(this);
+    this.openChooseDatasetWindow = this.openChooseDatasetWindow.bind(this);
   }
   getRandomColor() {
     var rint = Math.round(0xffffff * Math.random());
@@ -649,7 +666,7 @@ class Content extends React.Component {
     const netObj = JSON.parse(JSON.stringify(this.state.net));
     if (Object.keys(netObj).length == 0) {
       this.addError("No model available for export");
-      return;
+      return false;
     }
 
     Object.keys(netObj).forEach(layerId => {
@@ -657,8 +674,8 @@ class Content extends React.Component {
       Object.keys(layer.params).forEach(param => {
         layer.params[param] = layer.params[param][0];
         const paramData = data[layer.info.type].params[param];
-        if (layer.info.type == 'Python' || param == 'endPoint'){
-          return;
+        if (layer.info.type == 'Python' || param == 'endPoint'){  // TODO means what???
+          return false;
         }
         if (paramData.required === true && layer.params[param] === '') {
           error.push(`Error: "${paramData.name}" required in "${layer.props.name}" Layer`);
@@ -667,12 +684,17 @@ class Content extends React.Component {
     });
     if (error.length) {
       this.setState({ error });
+      return false;
     } else {
       callback(netObj);
+      return true;
     }
   }
-  exportNet(framework) {
-    this.exportPrep(function(netData) {
+  exportNet(framework, export_action) {
+    if(!this.checkLogin())
+        return false;
+    
+    return this.exportPrep(function(netData) {
       Object.keys(netData).forEach(layerId => {
         delete netData[layerId].state;
         if (netData[layerId]['comments']) {
@@ -684,14 +706,18 @@ class Content extends React.Component {
       this.sendSocketMessage({
         framework: framework,
         net: JSON.stringify(netData),
-        action: 'ExportNet',
+        //action: 'ExportNet',
+        action: export_action,
         net_name: this.state.net_name,
-        randomId: this.state.randomId
+        randomId: this.state.randomId,
+        username: this.state.userName
       });
 
     }.bind(this));
   }
   importNet(framework, id) {
+    if(!this.checkLogin())
+        return;
     this.dismissAllErrors();
     this.closeModal();
     this.clickEvent = false;
@@ -764,48 +790,166 @@ class Content extends React.Component {
   }
 //upload data
   uploadData(){
-	this.dismissAllErrors();
+    if(!this.checkLogin()){
+        return;
+    }
+    this.dismissAllErrors();
+    const formData=new FormData();
+    formData.append("file",$("#uploadData")[0].files[0]);
+    formData.append("username", this.state.userName);
 
-	const formData=new FormData();
-	formData.append("file",$("#uploadData")[0].files[0]);
-
-	$.ajax({
-		url: '/upload_training_data',
-		dataType: 'json',
-		type: 'POST',
-		data: formData,
-		processData: false,
-		contentType: false,
-		success : function (response){
-			if (response.result == 'success'){
-				window.alert("Success to upload data");
-			} else if (response.result == 'error'){
-				this.addError(response.error);
-			}
-		}.bind(this),
-		error : function (){
-			this.addError("Error");
-		}.bind(this)
-	});
+    $.ajax({
+        url: '/upload_training_data',
+        dataType: 'json',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success : function (response){
+            if (response.result == 'success'){
+                window.alert("Success to upload data");
+            } else if (response.result == 'error'){
+                this.addError(response.error);
+            }
+        }.bind(this),
+        error : function (){
+            this.addError("Error");
+        }.bind(this)
+    });
   }
 //over
+
+  setDataSet(dataSetName){
+    this.setState({dataSet: dataSetName});
+  }
+
+  openSelectDataSetWindow(){
+    if(!this.checkLogin())
+        return;
+    if(!this.exportNet('keras', 'SaveNetForTraining')){ // save net structure to local file system
+      return;
+    }
+
+    let dataSets = []
+    let has_model = true
+
+    $.ajax({
+      url: '/get_training_data',
+      type: 'GET',
+      data: {
+        username: this.state.userName
+      },
+      success : function (response){
+        if (response.result == 'success'){
+            dataSets = response.dataSets;
+            console.log(dataSets);
+            if(has_model){
+              this.modalHeader = null;
+              this.modalContent = <SelectDataSet setDataSet={this.setDataSet} 
+                openTrainingParaWindow={this.openTrainingParaWindow} dataSets={dataSets} />;
+              this.openModal();
+            }
+        } else if (response.result == 'error'){
+            // TODO return if has current model
+            // this.addError(response.error);
+        }
+      }.bind(this),
+      error : function (){
+        this.addError("Error");
+      }.bind(this)
+    })
+  }
+  openChooseDatasetWindow(){
+    if(!this.checkLogin())
+        return;
+    if(!this.exportNet('keras', 'SaveNetForTraining')){ // save net structure to local file system
+      return;
+    }
+    let supportedDatasets = ['mnist','imdb','cifar10'];
+    this.modalContent = <ChooseDatasetWindow dataSets={supportedDatasets} 
+        openTrainingParaWindow={this.openTrainingParaWindow} 
+        setDataSet={this.setDataSet} />;
+    console.log("choose dataset: ", this.state.dataSet);
+    this.openModal();
+  }
+
+  openTrainingParaWindow(){
+    this.modalHeader = null;
+    this.modalContent = <TrainingParaWindow submitParams={this.startTraining}/>;
+//    this.openModal();
+  }
+
 //startTraining
-  startTraining(){
-	this.dismissAllErrors();
-	$.ajax({
-		type: 'GET',
-		url: '/start_training',
-		success: function (response){
-			if (response.result == 'success'){
-				window.alert("Training process starts successfully...");
-			}else if(response.result == 'error'){
-				this.addError(response.error);
-			}
-		}.bind(this),
-		error : function (){
-			this.addError("Error");
-		}.bind(this)
-	});
+  startTraining(batch_size, epoch_times, lr, optSelected, optParas){
+    // console.log("Content.js start training function...");
+    this.closeModal();
+    console.log("In function content.js start training.");
+    //console.log(optParas);
+
+    this.dismissAllErrors();
+    var info = {
+        'rho': '-1',
+        'momentum': '-1',
+        'beta1': '-1',
+        'beta2': '-1'
+    };
+    
+    for (var key in optParas){
+        info[key] = optParas[key];
+    }
+    console.log(info);
+    // open log window
+    this.modalContent = <TrainingLogWindow />		
+    this.openModal();
+
+    $.ajax({
+        type: 'GET',
+        url: '/start_training',
+        data: {
+            batch_size: batch_size,
+            epoch_times: epoch_times,
+            lr: lr,
+            optSelected: optSelected,
+            rho: info['rho'],
+            momentum: info['momentum'],
+            beta1: info['beta1'],
+            beta2: info['beta2'],
+            username: this.state.userName,
+            dataSet: this.state.dataSet
+        },
+        success: function (response){
+            if (response.result == 'success'){
+                window.alert("Training process completed successfully...");
+            }else if(response.result == 'error'){
+                this.addError(response.error);
+            }
+        }.bind(this),
+        error : function (){
+            // this.addError("Error");
+        }.bind(this)
+    });
+  }
+
+  userLogin(username){
+      console.log('userLogin content.js');
+      console.log(username);
+      this.setState({
+          isLoggedIn: true,
+          userName: username
+      });
+  }
+  userLogout(){
+      console.log('userLogout content.js');
+      this.setState({
+          isLoggedIn: false,
+          userName: ''
+      });
+  }
+  checkLogin(){
+      if(!this.state.isLoggedIn){
+          this.addError('Please log in first.');
+      }
+      return this.state.isLoggedIn;
   }
 //over
   initialiseImportedNet(net,net_name) {
@@ -1341,12 +1485,18 @@ class Content extends React.Component {
     return (
         <div id="parent">
         <div id="logo_back">
-					<a href="http://fabrik.cloudcv.org"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
-					<a href="http://dislab.nju.edu.cn"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
+					<a href="https://github.com/KSDeng/VisualNN"><img src={'/static/img/dislab.png'} className="img-responsive" alt="logo" id="logo1"/></a>
+					<a href="https://cs.nju.edu.cn/lwz/"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo2"/></a>
 				<div className="clear"></div>
 				</div>
         <a className="sidebar-button" onClick={this.toggleSidebar}></a>
         <div id="sidebar">
+           <Login
+           setUserId={this.setUserId}
+           setUserName={this.setUserName}
+           userLogInMain={this.userLogin}
+           userLogOutMain={this.userLogout}
+           />
           <div id="sidebar-scroll" className="col-md-12">
              <h5 className="sidebar-heading">操作</h5>
              <TopBar
@@ -1364,7 +1514,7 @@ class Content extends React.Component {
 		<Tabs
 		selectedPhase={this.state.selectedPhase} 
 		changeNetPhase={this.changeNetPhase} 
-		startTraining={this.startTraining}
+		startTraining={this.openChooseDatasetWindow}
 		/>
              </div>
              <h5 className="sidebar-heading">插入网络层</h5>

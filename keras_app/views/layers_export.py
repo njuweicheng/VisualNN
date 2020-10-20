@@ -57,7 +57,7 @@ def data(layer, layer_in, layerId):
 # ********** Core Layers **********
 def dense(layer, layer_in, layerId, tensor=True):
     out = {}
-    if (len(layer['shape']['input']) > 1):
+    if ((not layer['shape']['input'] is None) and len(layer['shape']['input']) > 1):
         out[layerId + 'Flatten'] = Flatten()(*layer_in)
         layer_in = [out[layerId + 'Flatten']]
     units = layer['params']['num_output']

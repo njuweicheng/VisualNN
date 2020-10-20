@@ -8,11 +8,13 @@ Options:
 --shape=SHAPE    preprocessing's shape.
 
 """
+#import numpy as np
 from keras import backend as K
 from docopt import docopt
 from load_data import load_buildin_dataset
 from preprocessing import preprocess_buildin_dataset
 from docopt import docopt
+#from keras.utils import np_utils
 from keras.optimizers import RMSprop
 from keras.models import model_from_json
 #K.tensorflow_backend._get_available_gpus()
@@ -28,7 +30,12 @@ def buildModel(modelPath):
 	modelFile.close()
 	model = model_from_json(model)
 	return model
-
+def load(path):
+    f = np.load(path)
+    x_train, y_train = f['x_train'], f['y_train']
+    x_test, y_test = f['x_test'], f['y_test']
+    f.close()
+    return (x_train, y_train), (x_test, y_test)
 
 
 if __name__ == "__main__":
@@ -42,8 +49,9 @@ if __name__ == "__main__":
 
 	model = buildModel(model_path)
 	(x_train, y_train), (x_test, y_test) = load_buildin_dataset(dataset)
-	x_train, y_train, x_test, y_test = preprocess_buildin_dataset(x_train, 
-									   y_train, x_test, y_test, dataset, shape)
+
+        print(shape)
+	x_train, y_train, x_test, y_test = preprocess_buildin_dataset(x_train, y_train, x_test, y_test, dataset, shape)
 
 	model.compile(loss=loss,
 			  optimizer=RMSprop(),

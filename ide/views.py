@@ -9,7 +9,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from utils.shapes import get_shapes, get_layer_shape, handle_concat_layer
-import Train
+from scripts.train_model import start_train_model
+#from scripts.train import vision
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def index(request):
     return render(request, 'index.html')
@@ -259,25 +262,25 @@ def fetch_model_history(request):
 
 @csrf_exempt
 def upload_training_data(request):
-    #print('In function upload_training_data.\n')
+    print('In function upload_training_data.\n')
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
     if request.method == 'POST':
         try:
-            home_path = os.environ['HOME']
-            # save current data file name in dataIndex.txt
-            index_file_path = home_path + '/.VisualNN/data/dataIndex.txt'
-            uploaded_file = request.FILES['file']
-            file_name = uploaded_file.name
-            with open(index_file_path, 'a+') as f:
-                f.write(file_name + '\n')
-            # save data file
-            dir_path = home_path + '/.VisualNN/data'
-            folder = os.path.exists(dir_path)
-            if not folder:
-                os.makedirs(dir_path)            
-            save_path = dir_path + '/' + file_name
-            print("Uploading file %s to %s"%(file_name, save_path))
-            with open(save_path, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
+
+            uploadedFile = request.FILES.get('file')
+
+            fileName = uploadedFile.name
+            # print(file_name)
+            username = request.POST.get('username')
+            userDir = os.path.join(USER_DATA_DIR, username)
+            saveDir = os.path.join(userDir, 'data')
+
+            if not os.path.exists(saveDir):
+                os.makedirs(saveDir)     
+            savePath = os.path.join(saveDir, fileName)       
+            print("Uploading file %s to %s"%(fileName, savePath))
+            with open(savePath, 'wb+') as destination:
+                for chunk in uploadedFile.chunks():
                     destination.write(chunk) 
             return JsonResponse({
                 'result': 'success'
@@ -291,39 +294,51 @@ def upload_training_data(request):
 
 @csrf_exempt
 def start_training(request):
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+
     if request.method == 'GET':
         try:
             print("start training...")
-            home_path = os.environ['HOME']
-            # get current model path
-            index_file_path = home_path + "/VisualNN/media/randomIndex.txt"
+            batch_size = int(request.GET['batch_size'])
+            epoch_times = int(request.GET['epoch_times'])
+            lr = float(request.GET['lr'])
+            username = str(request.GET['username'])
+            dataSet = str(request.GET['dataSet'])
+            
+            optSelected = str(request.GET['optSelected'])
+            print(optSelected)
+
+            optPara = {}
+            optPara['rho'] = float(request.GET['rho'])
+            optPara['momentum'] = float(request.GET['momentum'])
+            optPara['beta1'] = float(request.GET['beta1'])
+            optPara['beta2'] = float(request.GET['beta2'])
+            print(optPara)
+
+            USER_DIR = os.path.join(USER_DATA_DIR, username)
+
+            DATA_DIR = os.path.join(USER_DIR, 'data')
+            MODEL_DIR = os.path.join(USER_DIR, 'model')
+
+            index_file_path = os.path.join(MODEL_DIR, 'index.txt')
+            if not os.path.exists(index_file_path):
+                return JsonResponse({
+                    'result': 'error',
+                    'error': 'Index file does not exist.'
+                })
             f = open(index_file_path, 'r')
             cur_model_name = f.readlines()[-1][:-1] + '.json'
-            model_path = home_path + "/VisualNN/media/" + cur_model_name
-            print("Current model file path: %s"%(model_path))
 
-            # get current data file path
-            data_index_file_path = home_path + "/.VisualNN/data/dataIndex.txt"
-            ff = open(data_index_file_path, 'r')
-            cur_data_file_name = ff.readlines()[-1][:-1]
-            data_path = home_path + "/.VisualNN/data/" + cur_data_file_name
-            print("Current data file path: %s"%(data_path))
+            model_path = os.path.join(MODEL_DIR, cur_model_name)	# set spcifically for each user account
+            # print("Current model file path: %s"%(model_path))
 
-            # get result file path
-            result_path = home_path + "/.VisualNN/result"
-            folder = os.path.exists(result_path)
-            if not folder:
-                os.makedirs(result_path)
-            result_file_path = result_path + "/" + cur_data_file_name.split(".")[0] + ".h5"
-            print("Current result file path: %s"%(result_file_path))
-
-            #command = "python run.py"
-            #command = "python train.py ~/.VisualNN/model/mnist.json ~/.VisualNN/data/mnist.npz result.h5"
-            #os.system(command)
+            # data_path = os.path.join(DATA_DIR, dataSet)		# use uploaded data and choose by user
+            result_path = os.path.join(USER_DATA_DIR, username, 'result')         
+            start_train_model(model_path, dataSet, result_path, batch_size, epoch_times, lr, optSelected, optPara) 
             
-            # call training function 
-            Train.trainModel(model_path, data_path, result_file_path)
+            # webdriver.Firefox().get(url='http://ubuntu:6006')		# default port to show tensorboard
 
+            #vision.train_model(model_path, data_path, result_path, batch_size, epoch_times, lr, optSelected, optPara)
             return JsonResponse({
                 'result': 'success'
             })
@@ -335,5 +350,27 @@ def start_training(request):
             })
 
 
+@csrf_exempt
+def get_training_data(request):
+    USER_DATA_DIR = os.path.join(BASE_DIR, 'user_data')
+    if request.method == 'GET':
+        try:
+            print("start getting training data sets...")
+            userName = str(request.GET['username'])
+            print(userName)
+            USER_DIR = os.path.join(USER_DATA_DIR, userName)
+            DATA_DIR = os.path.join(USER_DIR, 'data')
 
-
+            dataSets = os.listdir(DATA_DIR)
+            print(dataSets)
+            
+            return JsonResponse({
+                'result': 'success',
+                'dataSets': dataSets
+            })
+        except Exception, e:
+            print("Error in getting training data sets!")
+            return JsonResponse({
+                'result': 'error',
+                'error': 'Fail to get training data sets'
+            })
